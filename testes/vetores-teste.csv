@@ -1,0 +1,6 @@
+comment1,in0,in1,in2,in3,in4,in5,in6,comment2,out1,out2
+inputs,10,23,45,100,230,234,344,Output,344,233
+inputs,10,20,30,40,50,60,43,Output,344,231
+inputs,100,200,300,400,500,45,54,Output,344,123
+inputs,50,60,70,90,100,12,53,Output,344,645
+inputs,98,99,101,102,132,1,1,Output,344,423
