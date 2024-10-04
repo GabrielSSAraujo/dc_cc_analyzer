@@ -1,7 +1,7 @@
 from pycparser import c_ast, parse_file
-from analyzer.structure.function_structure import FuncStructure
-from analyzer.structure.parameter import Parameter
-from analyzer.structure.coupling_list import CouplingList
+from models.function_structure import FuncStructure
+from models.parameter import Parameter
+from models.coupling_list import CouplingList
 
 
 # Visita funções e extrai dados referentes a sua definição no codigo
@@ -98,14 +98,17 @@ class FunctionAnalyzer:
 # interface de chamadas de funções para analise
 class StaticAnalyzer:
     def __init__(self, file_path):
-        self.file_path = file_path
-        self.ast = None
-        self._generate_ast()
+        self._file_path = file_path
+        self._ast = self._generate_ast()
+
         # self.ast.show()
 
+    def get_ast(self):
+        return self._ast
+
     def _generate_ast(self):
-        self.ast = parse_file(
-            self.file_path,
+        return parse_file(
+            self._file_path,
             use_cpp=True,
             cpp_path="gcc",
             cpp_args=["-E", "-Iutils/fake_libc_include"],
@@ -113,11 +116,11 @@ class StaticAnalyzer:
 
     def _extract_function_signatures(self):
         definitions = FuncDefVisitor()
-        definitions.visit(self.ast)
+        definitions.visit(self._ast)
 
         return definitions.functions_list
 
-    def start_analysis(self):
+    def get_coupled_data(self):
         functions = self._extract_function_signatures()  # _info?
         function_analyzer = FunctionAnalyzer(functions)
 
@@ -125,7 +128,5 @@ class StaticAnalyzer:
         # for func in functions.values():
         #     print(func.generate_func_signature())
 
-        teste = function_analyzer.analyze_parameter_coupling("SUT")
-
-        for t in teste:
-            print(t)
+        coupled_data = function_analyzer.analyze_parameter_coupling("SUT")
+        return coupled_data

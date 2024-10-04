@@ -1,6 +1,13 @@
 from analyzer.static_analyzer import StaticAnalyzer
+from instrumentation.instrument import Instrumentator
 
 if __name__ == "__main__":
-    file_path = "./SUT/sut.c"
+    path = "./SUT/"
+    file_path = path + "sut.c"
     analyzer = StaticAnalyzer(file_path)
-    analyzer.start_analysis()
+
+    ast = analyzer.get_ast()
+    coupled_data = analyzer.get_coupled_data()
+
+    intrumentator = Instrumentator(ast, coupled_data, file_path)
+    intrumentator.instrument_code()
