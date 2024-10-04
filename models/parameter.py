@@ -1,4 +1,3 @@
-# analyzer/structures/parameter.py
 from dataclasses import dataclass
 from typing import Optional
 
