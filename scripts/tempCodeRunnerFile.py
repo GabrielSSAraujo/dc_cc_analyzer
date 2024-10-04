@@ -1,0 +1,1 @@
+python3 ./scripts/data_management.py ./testes/TestVec_VCP-500-VC-01.xlsx

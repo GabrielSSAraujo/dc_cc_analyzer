@@ -15,26 +15,24 @@ Teste de Driver para o SUT
 //comando para executar no code terminal: quando abro o terminal integrado em dc_cc_analzer
 /*
 gcc SUT/teste_driver.c SUT/SUT.c -o teste_driver
-./test_driver
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "SUT.h"
+//include SutFileName.h
 
-#define ROWS 16
-#define COLS 7
-#define OUT_COLS 6
+//define ROWS
+//define COLS
+//define OUT_COLS
 
 
 
 int main() {
-    printf("Teste de Driver para o SUT\n");
     /*init data*/
     int input_data[COLS];
     int output_data[OUT_COLS];
-    int out0, out1, out2, out3, out4, out5;
+    //int outx
 
     // Criar arquivos CSV
     FILE *input_file = fopen("input.csv", "r");
@@ -53,7 +51,7 @@ int main() {
     // Ler e escrever a primeira linha (cabeçalho)
     if (fgets(output_line, sizeof(output_line), output_file) != NULL) {
         output_line[strcspn(output_line, "\n")] = '\0';
-        fprintf(results_file, "%s,%s\n",output_line,"out0,out1,out2,out3,out4,out5");
+        //HeaderPlaceholder
     }
 
     for (int i = 1; i < ROWS; i++) {
@@ -82,26 +80,29 @@ int main() {
         }
 
         // Chamar a função SUT com os dados lidos
-        SUT(input_data[0], input_data[1], input_data[2], input_data[3], input_data[4], input_data[5], input_data[6], &out0, &out1, &out2, &out3, &out4, &out5);
+        //SUT()
 
         // Verificar os resultados e escrever no arquivo output.csv
-        printf("Debug: out0=%d, out1=%d, out2=%d, out3=%d, out4=%d, out5=%d\n", out0, out1, out2, out3, out4, out5);
-        printf("Debug: output_data[0]=%d, output_data[1]=%d, output_data[2]=%d, output_data[3]=%d, output_data[4]=%d, output_data[5]=%d\n", output_data[0], output_data[1], output_data[2], output_data[3], output_data[4], output_data[5]);
+        //printf("Debug: out0=%d, out1=%d, out2=%d, out3=%d, out4=%d, out5=%d\n", out0, out1, out2, out3, out4, out5);
+        //printf("Debug: output_data[0]=%d, output_data[1]=%d, output_data[2]=%d, output_data[3]=%d, output_data[4]=%d, output_data[5]=%d\n", output_data[0], output_data[1], output_data[2], output_data[3], output_data[4], output_data[5]);
 
-        int test_result = (out0 == output_data[0] && out1 == output_data[1] && out2 == output_data[2] && out3 == output_data[3] && out4 == output_data[4] && out5 == output_data[5]) ? 1 : 0;
+        //PassFailComparison
 
-        printf("Debug: test_result=%d\n", test_result);
-        printf("Debug: output_line=%s\n", output_line);
+        //printf("Debug: test_result=%d\n", test_result);
+        //printf("Debug: output_line=%s\n", output_line);
 
         output_line[strcspn(output_line, "\n")] = '\0'; //remove o lineFeed para não pular a linha. Quero concatenar com o resultado
         
         // Escrever no arquivo
-        if (fprintf(results_file, "%s,%d,%d,%d,%d,%d,%d\n", aux_output_line, out0, out1, out2, out3, out4, out5) < 0) {
+        //LineConcat
             perror("Erro ao escrever no arquivo");
             fclose(results_file);
             return 1;
         }
-    }
+
+
+}
+
         // Fechar arquivos
         fclose(input_file);
         fclose(output_file);
@@ -110,10 +111,9 @@ int main() {
          return 0;
 }
 
-//comando para executar no code terminal: quando abro o terminal integrado em dc_cc_analzer
+//comando para executar no code terminal: quando abro o terminal integrado dc_cc_analyzer
 /*
 gcc SUT/teste_driver.c SUT/SUT.c -o teste_driver
-./test_driver
 */
 
 
