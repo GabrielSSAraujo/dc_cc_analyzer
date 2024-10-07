@@ -1,34 +1,39 @@
-from pycparser import c_ast, c_parser, parse_file, c_generator
+from pycparser import c_ast, c_generator
 from models.coupling_list import CouplingList
-from typing import List
 
 
 class Instrumentator:
-    def __init__(self, ast, coupled_data: CouplingList, path):
-        self._ast = ast
-        self._coupled_data = coupled_data
-        self.path = path
+    def __init__(self):
+        self._ast = None
+        self._coupled_data = None
 
-    def generate_c_code(self, my_ast):
+    def _generate_c_code(self, my_ast):
         generator = c_generator.CGenerator()
         return generator.visit(my_ast)
 
-    def instrument_code(self):
-
+    def instrument_code(self, ast, coupled_data: CouplingList):
+        self._ast = ast
+        self._coupled_data = coupled_data
+        # Handle AST and insert data
         inserter = FunctionCallInserter()
 
+        # for each coupled function get which parameter is coupled and instrument the funtion
         for coupled_data in self._coupled_data:
-            # pegando apenas o primeiro, alterar
-            param1 = coupled_data.coupled_parameters[0]
-            function_c_n = coupled_data.function_b
-            # create a visitor to choose the type before use
-            inserter.set_data_to_insert(
-                function_c_n, "printf", f"o valor de {param1.name}: %d", param1.name
-            )
-            inserter.visit(self._ast)
+            func_name = coupled_data.function_b
+            for parameter in coupled_data.coupled_parameters:
+                # define the instrument function
+                inserter.set_data_to_insert(
+                    func_name,
+                    "printf",
+                    f"o valor de {parameter.name}: %d",
+                    parameter.name,
+                )
+                # visit ast and insert function
+                inserter.visit(self._ast)
 
-        with open("./SUT/sut_inst.c", "w") as file:
-            file.write(self.generate_c_code(self._ast))
+        # compara codigo c com os includes pre-processados e retorna diferença
+        code = self._generate_c_code(self._ast)
+        return code
 
 
 class FunctionCallInserter(c_ast.NodeVisitor):
@@ -45,12 +50,12 @@ class FunctionCallInserter(c_ast.NodeVisitor):
         self.param = param
 
     def generic_visit(self, node):
+        # parent nodes are kept and the child nodes are updated
         for child_name, child in node.children():
-            # Armazena o nó pai e o atributo que aponta para o filho
-            self.attr = child_name
             self.visit(child)
 
     def visit_FuncDef(self, node):
+        # if the first time, add includes
         if node.decl.name == self.func_name:
             self.visit(node.body)
 

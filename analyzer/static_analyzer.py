@@ -1,22 +1,23 @@
-from pycparser import c_ast, parse_file
+from pycparser import c_ast, parse_file, c_generator
 from models.function_structure import FuncStructure
 from models.parameter import Parameter
 from models.coupling_list import CouplingList
 
 
-# Visita funções e extrai dados referentes a sua definição no codigo
+# Visit functions definitions
 class FuncDefVisitor(c_ast.NodeVisitor):
     def __init__(self):
         self.functions_list = {}
         self.current_name = None
 
-    # get the function definitions // usar recursão aqui faria mais sentido .type.type.type //testado apenas para inteiro e ponteiro para interiro, presciso verificar tipos diversos
+    # get from each function definition (Fucntion structure) // usar recursão aqui faria mais sentido .type.type.type //testado apenas para inteiro e ponteiro para interiro, presciso verificar tipos diversos
     def visit_FuncDef(self, node):
         current_function = FuncStructure(
             type=node.decl.type.type.type.names[0], name=node.decl.name
         )
         self.current_name = node.decl.name
 
+        # for each parameter, check name, type and whether it is input or output
         for param in node.decl.type.args.params:
             temp_parameter = Parameter()
             params_type = param.type.type
@@ -36,6 +37,7 @@ class FuncDefVisitor(c_ast.NodeVisitor):
 
         self.functions_list[current_function.name] = current_function
 
+        # visit the body of each definition to identify calls to others fucntions
         self.visit(node.body)
 
     def visit_FuncCall(self, node):
@@ -43,13 +45,12 @@ class FuncDefVisitor(c_ast.NodeVisitor):
         self.functions_list[self.current_name].calls.append(name)
 
 
-# realiza a analise de acoplamento entre funções
+# Analyze data coupling between functions
 class FunctionAnalyzer:
     def __init__(self, functions):
         self.functions = functions
 
     def _identify_coupled_parameters(self, func_a_parameters, func_b_parameters):
-
         coupling_data = []
         output_params_func_a = [
             param for param in func_a_parameters if not param.is_input
@@ -62,7 +63,7 @@ class FunctionAnalyzer:
         ]
         return coupling_data
 
-    def analyze_parameter_coupling(
+    def _analyze_parameter_coupling(
         self, main_function
     ):  # Vou fazer isso aqui apenas para esse problema (sem recursão) prescisa generalizar
         coupling_list = []
@@ -97,36 +98,38 @@ class FunctionAnalyzer:
 
 # interface de chamadas de funções para analise
 class StaticAnalyzer:
-    def __init__(self, file_path):
-        self._file_path = file_path
-        self._ast = self._generate_ast()
+    # def __init__(self):
+    #     self._ast.show()
 
-        # self.ast.show()
+    def get_ast(self, file_path):
+        return self._generate_ast(file_path)
 
-    def get_ast(self):
-        return self._ast
-
-    def _generate_ast(self):
+    def _generate_ast(self, file_path):
         return parse_file(
-            self._file_path,
+            file_path,
             use_cpp=True,
             cpp_path="gcc",
             cpp_args=["-E", "-Iutils/fake_libc_include"],
         )
 
-    def _extract_function_signatures(self):
+    def _extract_function_definitions(self, ast):
         definitions = FuncDefVisitor()
-        definitions.visit(self._ast)
+        definitions.visit(ast)
 
         return definitions.functions_list
 
-    def get_coupled_data(self):
-        functions = self._extract_function_signatures()  # _info?
+    def generate_c_code_from_ast(self, ast):
+        generator = c_generator.CGenerator()
+        return generator.visit(ast)
+
+    def get_coupled_data(self, ast):
+
+        functions = self._extract_function_definitions(ast)  # _info?
         function_analyzer = FunctionAnalyzer(functions)
 
-        # # mostrando assinatura da função:
+        # # show function definitions:
         # for func in functions.values():
         #     print(func.generate_func_signature())
 
-        coupled_data = function_analyzer.analyze_parameter_coupling("SUT")
+        coupled_data = function_analyzer._analyze_parameter_coupling("SUT")
         return coupled_data
