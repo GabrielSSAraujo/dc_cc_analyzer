@@ -4,7 +4,7 @@ from .parameter import Parameter
 
 
 @dataclass
-class CouplingList:
+class Coupling:
     function_a: Optional[str] = None
     function_b: Optional[str] = None
     coupled_parameters: List[Parameter] = field(default_factory=list)

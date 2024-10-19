@@ -1,5 +1,5 @@
 from pycparser import c_ast, c_generator
-from models.coupling_list import CouplingList
+from models.coupling_list import Coupling
 
 
 class Instrumentator:
@@ -11,7 +11,7 @@ class Instrumentator:
         generator = c_generator.CGenerator()
         return generator.visit(my_ast)
 
-    def instrument_code(self, ast, coupled_data: CouplingList):
+    def instrument_code(self, ast, coupled_data: Coupling):
         self._ast = ast
         self._coupled_data = coupled_data
         # Handle AST and insert data
@@ -25,7 +25,7 @@ class Instrumentator:
                 inserter.set_data_to_insert(
                     func_name,
                     "printf",
-                    f"o valor de {parameter.name}: %d",
+                    f"o valor de {parameter.name}: %d \\n",
                     parameter.name,
                 )
                 # visit ast and insert function
