@@ -35,7 +35,7 @@ class DataExtractor:
             "./test_vector/output.csv", index=False
         )  # TO DO:mudar o local onde salva os arquivos??
 
-        print("Arquivos 'input.csv' e 'output.csv' foram gerados com sucesso.")
+        # print("Arquivos 'input.csv' e 'output.csv' foram gerados com sucesso.")
 
         # Retorna as formas(linha e coluna) dos DataFrames
         return input_shape, output_shape

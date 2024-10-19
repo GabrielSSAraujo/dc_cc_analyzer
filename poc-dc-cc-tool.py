@@ -33,7 +33,7 @@ if __name__ == "__main__":
     code_formatter.format_code(preprocessed_c_code, output_inst_sut)
 
     # chama test driver para rodar sut instrumentado
-    # pegar automaticamente arquivo dentro da pasta test_vector por enquanto:
+    # pegar automaticamente arquivo dentro da pasta test_vector, por enquanto:
     test_vector_path = "./test_vector/TestVec_VCP-500-VC-01.xlsx"
     td_generator = TestDriverGenerator()
     td_generator.generate_test_driver(test_vector_path)
@@ -43,8 +43,8 @@ if __name__ == "__main__":
         ["gcc", "./SUT/test_driver.c", "./SUT/sut_inst.c", "-o", "./SUT/test_driver"]
     )
     if compilation.returncode == 0:
-        print("Compilação bem-sucedida!")
         # Executar o programa compilado
         execution = subprocess.run(
             ["./SUT/test_driver"], capture_output=True, text=True
         )
+        print(execution.stdout)
