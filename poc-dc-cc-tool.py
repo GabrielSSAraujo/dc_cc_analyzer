@@ -1,6 +1,8 @@
 from analyzer.static_analyzer import StaticAnalyzer
 from instrumentation.instrument import Instrumentator
 from utils.code_formatter import CodeFormatter
+from test_driver.test_driver_generator import TestDriverGenerator
+import subprocess
 
 if __name__ == "__main__":
     path = "./SUT/"
@@ -29,3 +31,20 @@ if __name__ == "__main__":
     # convert preprocessed C code to readable code
     code_formatter = CodeFormatter(file_path, analyzer)
     code_formatter.format_code(preprocessed_c_code, output_inst_sut)
+
+    # chama test driver para rodar sut instrumentado
+    # pegar automaticamente arquivo dentro da pasta test_vector, por enquanto:
+    test_vector_path = "./test_vector/TestVec_VCP-500-VC-01.xlsx"
+    td_generator = TestDriverGenerator()
+    td_generator.generate_test_driver(test_vector_path)
+
+    # podemos ter um makefile aqui
+    compilation = subprocess.run(
+        ["gcc", "./SUT/test_driver.c", "./SUT/sut_inst.c", "-o", "./SUT/test_driver"]
+    )
+    if compilation.returncode == 0:
+        # Executar o programa compilado
+        execution = subprocess.run(
+            ["./SUT/test_driver"], capture_output=True, text=True
+        )
+        print(execution.stdout)

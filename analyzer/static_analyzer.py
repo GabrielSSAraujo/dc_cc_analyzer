@@ -1,7 +1,7 @@
 from pycparser import c_ast, parse_file, c_generator
 from models.function_structure import FuncStructure
 from models.parameter import Parameter
-from models.coupling_list import CouplingList
+from models.coupling_list import Coupling
 
 
 # Visit functions definitions
@@ -70,7 +70,7 @@ class FunctionAnalyzer:
         call_list = self.functions[main_function].calls
         for i in range(0, len(call_list)):
             for j in range(i + 1, len(call_list)):
-                coupling_data = CouplingList()
+                coupling_data = Coupling()
                 # find_parameter_coupling
                 func_a_parameters = self.functions[call_list[i]].parameters
                 func_b_parameters = self.functions[call_list[j]].parameters
