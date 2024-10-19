@@ -1,0 +1,2 @@
+pycparser==2.22
+openpyxl==3.1.5

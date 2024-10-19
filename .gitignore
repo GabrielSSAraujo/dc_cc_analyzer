@@ -1,0 +1,10 @@
+.vscode
+__pycache__
+apagar
+sut_inst.c
+temp/*
+test_vector/input.csv
+test_vector/output.csv
+test_vector/results.csv
+SUT/test_driver.c
+test_driver.exe
