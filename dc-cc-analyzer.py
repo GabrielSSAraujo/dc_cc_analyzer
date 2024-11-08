@@ -5,46 +5,33 @@ from test_driver.test_driver_generator import TestDriverGenerator
 import subprocess
 
 if __name__ == "__main__":
-    path = "./SUT/"
-    file_path = path + "sut.c"
+    """
+    # python3 dc_cc.py /path-sut /path-testvec
 
-    output_inst_sut = "SUT/sut_inst.c"
-    # file_path_inst_sut_header = "temp/sut_inst.h"
+    InputValidator.validate(path-sut, path-testvec)
 
-    # create static analyzer
-    analyzer = StaticAnalyzer()
+    [class Parameter] = StaticAnalyzer.get_func_metadata(string func_name)
 
-    # get ast com file_path
-    ast = analyzer.get_ast(file_path)
+    DataExtractor(path-testvec) # cria inputs.csv, outputs.csv, tolerances.csv
 
-    # get coupled data
-    coupled_data = analyzer.get_coupled_data(ast)
+    TestDriver.generate(inputs.csv, outputs.csv, [class Parameter]) # modifica o modelo test_driver.c
 
-    # create instrumentator
-    intrumentator = Instrumentator()
+    ast = StaticAnalyzer.get_ast(path-sut)
+    [CouplingData] = StaticAnalyzer.get_coupled_data(ast)
 
-    # instrument code to show coupled data value
-    preprocessed_c_code = intrumentator.instrument_code(
-        ast, coupled_data
-    )  # possivel problema: carregando todo o codigo
+    Instrumentator.instrument_code(ast, [CouplingData]) # gera SUTI.c
 
-    # convert preprocessed C code to readable code
-    code_formatter = CodeFormatter(file_path, analyzer)
-    code_formatter.format_code(preprocessed_c_code, output_inst_sut)
+    TestDriver.compile() # compila test_driver.c, logger.c, sut.c, suti.c, etc
+    TestDriver.run() # run test_driver.c (com sut e suti) | results.csv (gerado pelo testdriver), coupling.csv (gerado pelo suti)
 
-    # chama test driver para rodar sut instrumentado
-    # pegar automaticamente arquivo dentro da pasta test_vector, por enquanto:
-    test_vector_path = "./test_vector/TestVec_VCP-500-VC-01.xlsx"
-    td_generator = TestDriverGenerator()
-    td_generator.generate_test_driver(test_vector_path)
+    DataProcessor.analyze(inputs.csv, outputs.csv, tolerances.csv, results.csv, coupling.csv) => analise = {
+        "pass/fail": float, # porcentagem total
+        "cobertura": float, # porcentagem total
+        "instrumentacao_ok": bool,
+        "passou": [bool],
+        "observacoes": [str]
+    }
 
-    # podemos ter um makefile aqui
-    compilation = subprocess.run(
-        ["gcc", "./SUT/test_driver.c", "./SUT/sut_inst.c", "-o", "./SUT/test_driver"]
-    )
-    if compilation.returncode == 0:
-        # Executar o programa compilado
-        execution = subprocess.run(
-            ["./SUT/test_driver"], capture_output=True, text=True
-        )
-        print(execution.stdout)
+    ReportGenerator.generate_report(analise, inputs.csv, outputs.csv, results.csv, coupling.csv) => report.pdf, complete_report.csv
+    """
+    pass
