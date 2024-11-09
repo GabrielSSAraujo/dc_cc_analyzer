@@ -186,7 +186,7 @@ class StaticAnalyzer:
             file_path,
             use_cpp=True,
             cpp_path="gcc",
-            cpp_args=["-E", "-Iutils/fake_libc_include"],
+            cpp_args=["-E", "-I ../utils/fake_libc_include"],
         )
 
     def get_func_metadata(self, functions_name):

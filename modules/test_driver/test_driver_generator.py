@@ -20,7 +20,7 @@
 # 2)usar o subprocess, para automatizar a execução do teste_driver.c
 # 3)levantamento dos possíveis erros causados pela inconsistencia de path dos arquivos
 
-from test_driver.data_extractor import DataExtractor
+from modules.test_driver.data_extractor import DataExtractor
 import shutil
 
 

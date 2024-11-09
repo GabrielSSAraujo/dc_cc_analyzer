@@ -1,4 +1,4 @@
-from analyzer.static_analyzer import StaticAnalyzer
+from modules.analyzer.static_analyzer import StaticAnalyzer
 import re
 import difflib
 import os

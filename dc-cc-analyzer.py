@@ -1,23 +1,34 @@
-from analyzer.static_analyzer import StaticAnalyzer
-from instrumentation.instrument import Instrumentator
+from modules.analyzer.static_analyzer import StaticAnalyzer
+from modules.instrumentation.instrument import Instrumentator
 from utils.code_formatter import CodeFormatter
-from test_driver.test_driver_generator import TestDriverGenerator
+from modules.test_driver.test_driver_generator import TestDriverGenerator
 import subprocess
 
 if __name__ == "__main__":
+    path_sut = "../SUT/sut.c"
     """
     # python3 dc_cc.py /path-sut /path-testvec
 
     InputValidator.validate(path-sut, path-testvec)
+    """
+    static_analyzer = StaticAnalyzer()
 
-    [class Parameter] = StaticAnalyzer.get_func_metadata(string func_name)
+    # generate AST from SUT source
+    ast = static_analyzer.get_ast(path_sut)
+    # get coupled data from SUT components
+    coupled_data = static_analyzer.get_coupled_data(ast)
+    # get function metadata from function SUT(test: any function)
+    function_list = static_analyzer.get_func_metadata("SUT")
 
+    for coup in coupled_data:
+        print(coup)
+
+    print(function_list)
+
+    """
     DataExtractor(path-testvec) # cria inputs.csv, outputs.csv, tolerances.csv
 
     TestDriver.generate(inputs.csv, outputs.csv, [class Parameter]) # modifica o modelo test_driver.c
-
-    ast = StaticAnalyzer.get_ast(path-sut)
-    [CouplingData] = StaticAnalyzer.get_coupled_data(ast)
 
     Instrumentator.instrument_code(ast, [CouplingData]) # gera SUTI.c
 
