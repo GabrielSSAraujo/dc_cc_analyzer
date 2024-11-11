@@ -2,7 +2,7 @@ from pycparser import c_ast, c_generator
 from models.coupling_list import Coupling
 
 
-class Instrumentator:
+class CodeInstrumenter:
     def __init__(self):
         self._ast = None
         self._coupled_data = None
