@@ -121,6 +121,7 @@ class FunctionAnalyzer:
     ):
         coord_a = []
         coord_b = []
+        parameters = []
         output_params_func_a = [
             (i, param)
             for i, param in enumerate(func_a_parameters)
@@ -133,12 +134,15 @@ class FunctionAnalyzer:
                 if function_a_return == param:
                     coord_a.append(-1)
                     coord_b.append(index)
+                    parameters.append(param)
+
                 # check coupling between parameters
                 for a_param in output_params_func_a:
                     if param == a_param[1]:
                         coord_b.append(index)
                         coord_a.append(a_param[0])
-        return coord_a, coord_b
+                        parameters.append(param)
+        return coord_a, coord_b, parameters
 
     def _analyze_parameter_coupling(self, main_function):
         coupling_list = []
@@ -150,12 +154,13 @@ class FunctionAnalyzer:
                 func_a_parameters = self.functions[call_list[i]].parameters
                 function_a_return = self.functions[call_list[i]].body.function_return
                 func_b_parameters = self.functions[call_list[j]].parameters
-                coupling_data.coord_a, coupling_data.coord_b = (
-                    self._identify_coupled_parameters(
-                        func_a_parameters, func_b_parameters, function_a_return
-                    )
+                (
+                    coupling_data.coord_a,
+                    coupling_data.coord_b,
+                    coupling_data.parameters,
+                ) = self._identify_coupled_parameters(
+                    func_a_parameters, func_b_parameters, function_a_return
                 )
-
                 if len(coupling_data.coord_a) > 0 and len(coupling_data.coord_b) > 0:
 
                     funca = self.functions[call_list[i]].name
@@ -189,8 +194,11 @@ class StaticAnalyzer:
             cpp_args=["-E", "-I ../utils/fake_libc_include"],
         )
 
-    def get_func_metadata(self, functions_name):
-        return self.functions_metadata[functions_name]
+    def get_func_metadata(self, functions_name=None):
+        if not functions_name:
+            return self.functions_metadata
+        else:
+            return self.functions_metadata[functions_name]
 
     def _extract_function_definitions(self, ast):
         # get definitions and parameters
