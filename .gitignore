@@ -8,3 +8,4 @@ test_vector/output.csv
 test_vector/results.csv
 SUT/test_driver.c
 test_driver.exe
+.venv
