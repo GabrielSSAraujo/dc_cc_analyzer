@@ -21,18 +21,15 @@ if __name__ == "__main__":
     # get coupled data from SUT components
     coupled_data = static_analyzer.get_coupled_data(ast)
 
-    # get function metadata from function SUT(test: any function)
-    function_list = static_analyzer.get_func_metadata()
-
     # get dictionary with typedef mapping to primitive types
-    types = TypeExtractor(ast)
-    type_list = types.get_types_from_ast()
+    types = TypeExtractor()
+    typedef_to_primitive_type = types.get_types_from_ast(ast)
 
     # instrument code using handling AST
     code_instrumenter = CodeInstrumenter()
     main_function = "SUT"
     preprocessed_code = code_instrumenter.instrument_code(
-        ast, coupled_data, main_function, type_list
+        ast, coupled_data, main_function, typedef_to_primitive_type
     )  # gera SUTI.c
 
     # format code and create sut_isnt.c
