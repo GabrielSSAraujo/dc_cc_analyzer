@@ -20,7 +20,7 @@ class FuncDeclVisitor(c_ast.NodeVisitor):
                 if isinstance(params_type, c_ast.IdentifierType):
                     # inputs
                     temp_parameter.type = " ".join(params_type.names)
-                    temp_parameter.pointer_depth = "*"
+                    temp_parameter.pointer_depth = ""
                 elif isinstance(params_type, c_ast.PtrDecl):
                     # output - tratar esse caso quando acoplado
                     temp_parameter.type = " ".join(params_type.type.type.names)
@@ -28,7 +28,7 @@ class FuncDeclVisitor(c_ast.NodeVisitor):
                 elif isinstance(params_type, c_ast.TypeDecl):
                     # outputs
                     temp_parameter.type = " ".join(params_type.type.names)
-                    temp_parameter.pointer_depth = ""
+                    temp_parameter.pointer_depth = "*"
 
                 temp_parameter.name = param.name
                 parameter_list.append(temp_parameter)
@@ -125,11 +125,11 @@ class FunctionAnalyzer:
         output_params_func_a = [
             (i, param)
             for i, param in enumerate(func_a_parameters)
-            if not param.pointer_depth
+            if param.pointer_depth
         ]
 
         for index, param in enumerate(func_b_parameters):
-            if param.pointer_depth == "*":
+            if not param.pointer_depth:
                 # check coupling between function return and parameters
                 if function_a_return == param:
                     coord_a.append(-1)
