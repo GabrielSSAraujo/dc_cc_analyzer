@@ -11,6 +11,7 @@ class CodeFormatter:
         self._analyzer = analyzer
         # sut path
         self._sut_file_path = file_path
+        self._sut_file_directory = os.path.dirname(self._sut_file_path)
         # teporary path to store sut includes
         self._temp_include_path = "./temp/temp_includes.c"
         # temporary path to store preprocessed includes
@@ -30,7 +31,7 @@ class CodeFormatter:
                 file.write(match.group(0) + "\n")
 
     def copy_headers_to_temp(self):
-        origem = os.path.dirname(self._sut_file_path)
+        origem = self._sut_file_directory
         destino = "./temp/"
         for root, dirs, files in os.walk(origem):
             for file in files:
@@ -77,9 +78,13 @@ class CodeFormatter:
         return output
 
     def remove_temp_files(self):
-        print("implement")
+        for filename in os.listdir("./temp"):
+            file_path = os.path.join("./temp", filename)
+            # Verifica se é um arquivo e o remove
+            if os.path.isfile(file_path):
+                os.remove(file_path)
 
-    def format_code(self, preprocessed_code, output_file_path):
+    def format_code(self, preprocessed_code):
 
         preprocessed_code_file_path = "./temp/temp_preprocessed_sut.c"
 
@@ -93,6 +98,6 @@ class CodeFormatter:
         formatted_code = self.compare_files(
             preprocessed_code_file_path, self._temp_preporcessed_include_path
         )
+        self.remove_temp_files()
 
-        with open(output_file_path, "w+") as out_file:
-            out_file.write(formatted_code)
+        return formatted_code

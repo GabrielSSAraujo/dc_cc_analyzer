@@ -4,6 +4,7 @@ from modules.analyzer.type_extractor import TypeExtractor
 from utils.code_formatter import CodeFormatter
 from modules.test_driver.test_driver_generator import TestDriverGenerator
 import subprocess
+import os
 
 if __name__ == "__main__":
     path_sut = "../SUT/sut.c"
@@ -30,13 +31,16 @@ if __name__ == "__main__":
     # instrument code using handling AST
     code_instrumenter = CodeInstrumenter()
     main_function = "SUT"
-    code = code_instrumenter.instrument_code(
+    preprocessed_code = code_instrumenter.instrument_code(
         ast, coupled_data, main_function, type_list
     )  # gera SUTI.c
 
-    # create a temp file do record the resulting code
-    with open("temp/sut_inst.c", "w+") as fp:
-        fp.write(code)
+    # format code and create sut_isnt.c
+    code_formatter = CodeFormatter(path_sut, static_analyzer)
+    code = code_formatter.format_code(preprocessed_code)
+
+    with open(os.path.dirname(path_sut) + "/sut_inst.c", "w+") as out_file:
+        out_file.write(code)
 
     """
     DataExtractor(path-testvec) # cria inputs.csv, outputs.csv, tolerances.csv
