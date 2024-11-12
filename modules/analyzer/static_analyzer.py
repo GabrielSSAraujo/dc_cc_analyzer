@@ -66,6 +66,7 @@ class FuncDeclVisitor(c_ast.NodeVisitor):
             func_ret.type = current_function.type
             current_function.body = Body()
             current_function.body.function_return = func_ret
+            current_function.body.assigned_to = func_ret
 
             # append element to function list
             self.functions_list[self.current_name] = current_function
@@ -76,7 +77,6 @@ class FuncDeclVisitor(c_ast.NodeVisitor):
         # Align function parameter names with caller function for clarity
         name = node.name.name
         self.functions_list[self.current_name].body.calls.append(name)
-
         # parameters to be renamed
         params = self.functions_list[name].parameters
         if hasattr(node.args, "exprs"):
@@ -102,13 +102,19 @@ class FuncDefVisitor(c_ast.NodeVisitor):
 
     def visit_Assignment(self, node):
         name = ""
+        pd_asgn = ""
         if isinstance(node.lvalue, c_ast.ID):
             name = node.lvalue.name
         elif isinstance(node.lvalue, c_ast.UnaryOp):
             if isinstance(node.lvalue.expr, c_ast.ID):
                 name = node.lvalue.expr.name
+                pd_asgn = "*"
         if isinstance(node.rvalue, c_ast.FuncCall):
             self.functions_list[node.rvalue.name.name].body.function_return.name = name
+            self.functions_list[node.rvalue.name.name].body.assigned_to.name = name
+            self.functions_list[
+                node.rvalue.name.name
+            ].body.assigned_to.pointer_depth = pd_asgn
 
 
 # Analyze data coupling between functions
@@ -134,7 +140,7 @@ class FunctionAnalyzer:
                 if function_a_return == param:
                     coord_a.append(-1)
                     coord_b.append(index)
-                    parameters.append(param)
+                    parameters.append(function_a_return)
 
                 # check coupling between parameters
                 for a_param in output_params_func_a:
@@ -152,7 +158,7 @@ class FunctionAnalyzer:
                 coupling_data = Coupling()
                 # find_parameter_coupling
                 func_a_parameters = self.functions[call_list[i]].parameters
-                function_a_return = self.functions[call_list[i]].body.function_return
+                function_a_return = self.functions[call_list[i]].body.assigned_to
                 func_b_parameters = self.functions[call_list[j]].parameters
                 (
                     coupling_data.coord_a,

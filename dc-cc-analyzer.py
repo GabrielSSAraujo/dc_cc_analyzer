@@ -1,5 +1,6 @@
 from modules.analyzer.static_analyzer import StaticAnalyzer
-from modules.instrumentation.instrument import Instrumentator
+from modules.code_instrumenter.code_instrumenter import CodeInstrumenter
+from modules.analyzer.type_extractor import TypeExtractor
 from utils.code_formatter import CodeFormatter
 from modules.test_driver.test_driver_generator import TestDriverGenerator
 import subprocess
@@ -15,22 +16,32 @@ if __name__ == "__main__":
 
     # generate AST from SUT source
     ast = static_analyzer.get_ast(path_sut)
+
     # get coupled data from SUT components
     coupled_data = static_analyzer.get_coupled_data(ast)
+
     # get function metadata from function SUT(test: any function)
-    function_list = static_analyzer.get_func_metadata("SUT")
+    function_list = static_analyzer.get_func_metadata()
 
-    for coup in coupled_data:
-        print(coup)
+    # get dictionary with typedef mapping to primitive types
+    types = TypeExtractor(ast)
+    type_list = types.get_types_from_ast()
 
-    print(function_list)
+    # instrument code using handling AST
+    code_instrumenter = CodeInstrumenter()
+    main_function = "SUT"
+    code = code_instrumenter.instrument_code(
+        ast, coupled_data, main_function, type_list
+    )  # gera SUTI.c
+
+    # create a temp file do record the resulting code
+    with open("temp/sut_inst.c", "w+") as fp:
+        fp.write(code)
 
     """
     DataExtractor(path-testvec) # cria inputs.csv, outputs.csv, tolerances.csv
 
     TestDriver.generate(inputs.csv, outputs.csv, [class Parameter]) # modifica o modelo test_driver.c
-
-    Instrumentator.instrument_code(ast, [CouplingData]) # gera SUTI.c
 
     TestDriver.compile() # compila test_driver.c, logger.c, sut.c, suti.c, etc
     TestDriver.run() # run test_driver.c (com sut e suti) | results.csv (gerado pelo testdriver), coupling.csv (gerado pelo suti)
