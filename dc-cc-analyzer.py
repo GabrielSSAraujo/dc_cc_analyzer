@@ -1,7 +1,7 @@
 from modules.analyzer.static_analyzer import StaticAnalyzer
 from modules.code_instrumenter.code_instrumenter import CodeInstrumenter
 from modules.analyzer.type_extractor import TypeExtractor
-from utils.code_formatter import CodeFormatter
+from modules.code_instrumenter.code_formatter import CodeFormatter
 from modules.test_driver.test_driver_generator import TestDriverGenerator
 import subprocess
 import os
