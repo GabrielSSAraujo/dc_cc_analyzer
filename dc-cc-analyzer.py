@@ -1,66 +1,78 @@
 from modules.analyzer.static_analyzer import StaticAnalyzer
-from modules.instrumentation.instrument import Instrumentator
-from utils.code_formatter import CodeFormatter
+from modules.analyzer.type_extractor import TypeExtractor
+from modules.code_instrumenter.code_formatter import CodeFormatter
+from modules.code_instrumenter.code_instrumenter import CodeInstrumenter
+from modules.data_processor.data_processor import DataProcessor
+from modules.input_validator.input_validator import InputValidator
+# from modules.printer.printer import Printer
 from modules.test_driver.test_driver_generator import TestDriver
+
+import sys
+import os
 import subprocess
 
 if __name__ == "__main__":
-    path = "./tests/data/SUT/"
-    file_path = path + "sut.c"
-
-    output_inst_sut = "tests/data/SUT/sut_inst.c"
-    #file_path_inst_sut_header = "./tests/data/sut_inst.h"
-
-    # create static analyzer
-    analyzer = StaticAnalyzer()
-
-    # get ast com file_path
-    ast = analyzer.get_ast(file_path)
-
-    # get coupled data
-    coupled_data = analyzer.get_coupled_data(ast)
+    # python3 dc_cc.py /path-sut /path-testvec
     
-    # create instrumentator
-    intrumentator = Instrumentator()
+    # Validate inputs
+    input_validator = InputValidator(sys.argv)
+    if not InputValidator.validate():
+        exit
 
-    # instrument code to show coupled data value
-    preprocessed_c_code = intrumentator.instrument_code(
-        ast, coupled_data
-    )  # possivel problema: carregando todo o codigo
+    path_sut = sys.argv[1]
+    path_testvector = sys.argv[2]
 
-    # convert preprocessed C code to readable code
-    code_formatter = CodeFormatter(file_path, analyzer)
-    code_formatter.format_code(preprocessed_c_code, output_inst_sut)
+    # Get coupling data from SUT
+    static_analyzer = StaticAnalyzer()
+    ast = static_analyzer.get_ast(path_sut)
+    print(ast)
 
-    # chama test driver para rodar sut instrumentado
-    # pegar automaticamente arquivo dentro da pasta test_vector, por enquanto:
-    test_vector_path = "./tests/data/test_vectors/TestVec_VCP-500-VC-01.xlsx"
+    coupled_data = static_analyzer.get_coupled_data(ast)
+    parameters = static_analyzer.get_func_metadata("SUT")
+    print(parameters)
 
+    # Get SUT's typedefs primitive types
+    types = TypeExtractor()
+    typedef_to_primitive_type = types.get_types_from_ast(ast)
 
-    #SUT INSTRUMENTADO
+    # Generate preprocessed Instrumented SUT from AST
+    code_instrumenter = CodeInstrumenter()
+    preprocessed_code = code_instrumenter.instrument_code(ast, coupled_data, "SUT", typedef_to_primitive_type)  # gera SUTI.c
+
+    # Format Instrumented SUT (sut_inst.c)
+    code_formatter = CodeFormatter(path_sut, static_analyzer)
+    code = code_formatter.format_code(preprocessed_code)
+
+    # Create sut_inst.c file
+    with open(os.path.dirname(path_sut) + "/sut_inst.c", "w+") as out_file:
+        out_file.write(code)
+
+    # Compile Test Driver with Instrumented SUT and Original SUT
+    compilation = subprocess.run(["gcc", "all", f"pd={path_sut}"])
+
+    #Execute Test Driver with Original SUT
     td_generator = TestDriver()
-    td_generator.generate_test_driver(test_vector_path, "./tests/data/results_suti.csv")
+    td_generator.generate_test_driver(path_testvector, "./data/results_sut.csv")
 
-    # podemos ter um makefile aqui
-    compilation = subprocess.run(
-        ["gcc", "./modules/test_driver/c_files/test_driver.c", "./tests/data/SUT/sut_inst.c", "-o", "./modules/test_driver/c_files/test_driver"]
-    )
+    if compilation.returncode == 0:
+        execution = subprocess.run(["./testdriver_sut"], capture_output=True, text=True)
+        print(execution.stdout)
+
+    # Setup Test Driver
+    td_generator = TestDriver()
+    td_generator.generate_test_driver(path_testvector, "./data/results_suti.csv")
+
+    # Execute Test Driver with Instrumented SUT
     if compilation.returncode == 0:
         # Executar o programa compilado
-        execution = subprocess.run(
-            ["./modules/test_driver/c_files/test_driver"], capture_output=True, text=True
-        )
-        print(execution.stdout)
+        execution = subprocess.run(["./testdriver_suti"], capture_output=True, text=True)
+        print(execution.stdout) # debug
     
-    #SUT ORIGINAL
-    td_generator = TestDriver()
-    td_generator.generate_test_driver(test_vector_path, "./tests/data/results_sut.csv")
-    compilation = subprocess.run(
-        ["gcc", "./modules/test_driver/c_files/test_driver.c", "./tests/data/SUT/sut.c", "-o", "./modules/test_driver/c_files/test_driver"]
-    )
-    if compilation.returncode == 0:
-        # Executar o programa compilado
-        execution = subprocess.run(
-            ["./modules/test_driver/c_files/test_driver"], capture_output=True, text=True
-        )
-        print(execution.stdout)
+    # Analyze data produced by test driver execution
+    data_processor = DataProcessor("./data/")
+    data_processor.analyze()
+
+    # TO-DO: CREATE GET FUNCTIONS TO PASS DATA TO PRINTER
+
+    # printer = Printer()
+    # printer.generate_report()

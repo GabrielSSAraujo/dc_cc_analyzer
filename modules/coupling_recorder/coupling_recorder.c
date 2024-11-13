@@ -55,14 +55,15 @@ void recorder_record(const char* name, void *data, const char *type) {
     list_setNodeData(_list, id, data, type);
 }
 
-void recorder_save() {
+void recorder_save(float time) {
     if (!_couplings_set) {
-        printf("Error: No coupling was set!\n");
         return;
     }
 
     // Check if header of csv was written
     if (!_header_written) {
+        fprintf(_file, "Time, ");
+
         // Write csv header
         for (int i = 0; i < _list->size; i++) {
             list_printNodeNameToFile(_list, i, _file);      
@@ -76,6 +77,9 @@ void recorder_save() {
         }
         _header_written = 1;
     }
+
+    // Print time
+    fprintf(_file, "%f, ", time);
 
     // Print values
     for (int i = 0; i < _list->size; i++) {

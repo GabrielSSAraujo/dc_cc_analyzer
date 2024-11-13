@@ -30,7 +30,9 @@ combined_df = pd.concat([inputs_df, coupling_df], axis=1)
 #combined_df = pd.merge(inputs_df, coupling_df, left_index=True, right_index=True, how='outer')
 df = pd.DataFrame(combined_df) # Treating data issues
 df.fillna('', inplace=True) # fills NaN with empty string
-display(df)
+
+class Printer:
+    pass
 
 #Step 4 - Create class PDF
 class PDF(FPDF):
