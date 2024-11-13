@@ -3,6 +3,7 @@ from models.function_structure import FuncStructure
 from models.parameter import Parameter
 from models.coupling_list import Coupling
 from models.function_body import Body
+import pycparser_fake_libc
 
 
 class FuncDeclVisitor(c_ast.NodeVisitor):
@@ -193,11 +194,11 @@ class StaticAnalyzer:
         return self._generate_ast(file_path)
 
     def _generate_ast(self, file_path):
+        fake_libc_arg = "-I" + pycparser_fake_libc.directory
         return parse_file(
             file_path,
             use_cpp=True,
-            cpp_path="gcc",
-            cpp_args=["-E", "-I ../utils/fake_libc_include"],
+            cpp_args=["-E", fake_libc_arg]
         )
 
     def get_func_metadata(self, functions_name=None):
