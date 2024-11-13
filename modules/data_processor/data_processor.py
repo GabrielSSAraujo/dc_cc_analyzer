@@ -16,7 +16,7 @@ class DataProcessor:
         # Load tolerances as a dictionary
         tolerances_df = pd.read_csv(files_dir + 'tolerances.csv', index_col=0, header=None)
         self.tolerances = tolerances_df[1].to_dict()  # Column 1 contains tolerance values
-        
+
     def analyze(self):
         # Initialize pass/fail counters
         total_tests = 0
@@ -31,12 +31,21 @@ class DataProcessor:
                 if column != "Time":
                     expected_value = row[column]
                     actual_value = self.actual_results.at[index, column]
+                    suti_value = self.suti_results.at[index, column]
                     tolerance = float(self.tolerances.get(column, 0))
 
-                    # Check if the actual value is within tolerance
+                    # Check if the actual value is within tolerance of the expected output
                     if abs(expected_value - actual_value) > tolerance:
                         pass_case = False
                         break
+
+                    # Check if the difference between actual result and SUTI result exceeds tolerance
+                    if abs(actual_value - suti_value) > tolerance:
+                        logging.warning(
+                            f"Warning: Difference between actual result ({actual_value}) and "
+                            f"SUTI result ({suti_value}) for '{column}' at index {index} exceeds tolerance ({tolerance})."
+                            f"Instrumented SUT may be compromised."
+                        )
             
             # Count passes/fails
             if pass_case:
@@ -63,12 +72,26 @@ class DataProcessor:
             
             # Iterate through values in the column, comparing each with the previous value
             previous_value = None
-            for _, value in self.couplings[coupling].items():
+            for index, value in self.couplings[coupling].items():
                 if previous_value is not None:
-                    # Calculate the difference between consecutive values
+                    # Calculate the difference between consecutive values in the coupling
                     if abs(value - previous_value) > tolerance:
-                        coupling_exercised = True
-                        break
+                        # Check if the corresponding output vector has also changed beyond tolerance
+                        output_changed = False
+                        for output_column in self.actual_results.columns:
+                            if output_column != "Time":
+                                previous_output_value = self.actual_results.at[index - 1, output_column]
+                                current_output_value = self.actual_results.at[index, output_column]
+                                output_tolerance = float(self.tolerances.get(output_column, 0))
+
+                                # Check if output change exceeds tolerance
+                                if abs(current_output_value - previous_output_value) > output_tolerance:
+                                    output_changed = True
+                                    break  # Stop if any output value has changed beyond tolerance
+                        
+                        if output_changed:
+                            coupling_exercised = True
+                            break
                 previous_value = value  # Update previous value for the next comparison
             
             if coupling_exercised:
@@ -77,4 +100,3 @@ class DataProcessor:
         # Calculate and print the percentage of exercised couplings
         exercised_percentage = (exercised_couplings / total_couplings) * 100
         print(f"Percentage of exercised couplings: {exercised_percentage:.2f}%")
-        
