@@ -53,7 +53,7 @@ class TestDriver:
         new_parameters = []
         for param in parameters:
             new_type = type_mapping.get(param.type, param.type)
-            new_parameters.append(Parameter(new_type, param.name, param.is_input))
+            new_parameters.append(Parameter(new_type, param.name, param.pointer_depth))
         # Print new_parameters for debugging
         # for param in new_parameters:
         #     print(f"name: {param.name}, type: {param.type}, Is Input: {param.is_input}")    
@@ -73,7 +73,7 @@ class TestDriver:
     
     def header_generator(self, CType_parameters):
         # Cria uma lista de strings no formato "parameter.name"
-        header = [param.name for param in CType_parameters if param.is_input == 0]
+        header = [param.name for param in CType_parameters if param.pointer_depth]
         
         # Junta todas as strings em uma única string, com cada uma separada por vírgula
         header = ', '.join(header)
@@ -89,7 +89,7 @@ class TestDriver:
         code_lines = []
         
         for param in params:
-            if param.is_input == 1:
+            if not param.pointer_depth:
                 code_lines.append('\t\ttoken = strtok(NULL, ",");')
                 conversion_type = ''
                 if param.type in atoi:
@@ -110,7 +110,7 @@ class TestDriver:
     def sut_caller(self, CType_parameters, sut_name):   
         param_strings = []
         for param in CType_parameters:
-            if param.is_input == 0:
+            if param.pointer_depth:
                 param_strings.append(f'&{param.name}')
             else:
                 param_strings.append(param.name)
@@ -123,7 +123,7 @@ class TestDriver:
         variables_list = []
 
         for param in CType_parameters:
-            if param.is_input == 0:
+            if param.pointer_depth:
                 format_spec = formatter_spec.get(param.type)
                 if format_spec:
                     format_string.append(format_spec)
@@ -206,9 +206,9 @@ class TestDriver:
 
         return
 
-    def generate_test_driver(self, file_path, result_file_path):
+    def generate_test_driver(self, file_path, result_file_path, parameters):
         data_extractor = DataExtractor(file_path)
-        input_path, output_path, parameters = data_extractor.extract_data()
+        input_path, output_path = data_extractor.extract_data(parameters)
 
         # print(f"input.csv - Linhas: {input_shape[0]}, Colunas: {input_shape[1]-1}")
         # print(f"output.csv - Linhas: {output_shape[0]}, Colunas: {output_shape[1]}")

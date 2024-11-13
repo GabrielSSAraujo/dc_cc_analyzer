@@ -35,7 +35,7 @@ class CodeInstrumenter:
                     "recorder_record",
                     f"{parameter.name}",
                     before_name + parameter.name,
-                    self.type_list[parameter.type],
+                    '"'+self.type_list[parameter.type]+'"',
                 )
                 # visit ast and insert function
                 inserter.visit(self._ast)

@@ -14,8 +14,9 @@ from models.parameter import Parameter
 class DataExtractor:
     def __init__(self, file_path):
         self.file_path = file_path
+        
 
-    def extract_data(self):
+    def extract_data(self, parameters):
         # Verifica a extensão do arquivo e lê o arquivo
         file_extension = os.path.splitext(self.file_path)[1]
         if file_extension == ".xlsx":
@@ -33,7 +34,7 @@ class DataExtractor:
         #else:  #deixei aqui apenas enquanto não implementamos inputValidator
             #raise ValueError("Formato de arquivo não suportado. Use .csv ou .xlsx") #se não for .csv ou .xlsx, retorna erro
 
-        parameters = self.generate_parameters()        
+        # parameters = self.generate_parameters()        
         # Imprimir os parâmetros para verificar **DEBUG**
         # for param in parameters:
         #     print(f"Type: {param.type}, Name: {param.name}, Is Input: {param.is_input}")
@@ -78,7 +79,7 @@ class DataExtractor:
         #ou seja, a parte importante é a segunda linha em diante.
         #na primeira linha estão as labels da coluna, na segunda linha em diante estão os valores de tolerância.
 
-        return input_path, output_path, parameters
+        return input_path, output_path
     
     #generate_parameters está sendo usado para criar os dados sintéticos. posteriormente, será substituido pelo analisador estático
     def generate_parameters(self):
@@ -108,7 +109,7 @@ class DataExtractor:
 
         # Verificar e ordenar os DataFrames conforme parameters.name
         for param in parameters:
-            if param.is_input:
+            if not param.pointer_depth:
                 if param.name in df.columns:
                     input_df[param.name] = df[param.name]
                 else:
