@@ -16,6 +16,7 @@ class DataProcessor:
         self.pass_rate = 0.0
         self.exercised_percentage = 0.0
         self.compromised_suti = False
+        self.exercised_couplings = [] # STILL NOT BEING FILLED
         
         # Load tolerances as a dictionary
         tolerances_df = pd.read_csv(files_dir + 'tolerances.csv', index_col=0, header=None)
@@ -45,6 +46,7 @@ class DataProcessor:
                         pass_case = False
 
                     # Check if the difference between actual result and SUTI result exceeds tolerance
+                    tolerance = 0.00001
                     difference = abs(actual_value - suti_value)
                     rounded_difference = round_to_match_decimals(difference, tolerance)
                     if rounded_difference > tolerance:
