@@ -1,43 +1,149 @@
-# author: aline
-# comando:  python3 ./scripts/data_management.py ./testes/TestVec_VCP-500-VC-01.xlsx
+"""
+ @file: test_driver_generator.py
+ @brief [Descrição breve do arquivo]
 
-# COMECE POR AQUI:
-# 1)O PRIMEIRO código a ser excecutado: data_management.py, usando o comando: python3 ./scripts/data_management.py ./testes/TestVec_VCP-500-VC-01.xlsx
-# válido para quando abre o terminal no dc_cc_analyzer
-# 2)SOMENTE APÓS A EXECUÇÃO DO data_management.py, O CÓDIGO teste_driver.c SERÁ GERADO, E O CÓDIGO teste_driver.c SERÁ EXECUTADO
-# utilizando o comando: gcc SUT/teste_driver.c SUT/SUT.c -o teste_driver
-# válido para quando o terminal estiver na pasta dc_cc_analyzer
-
-# DESCRIÇÃO RÁPIDA:
-# 1)data_management.py fará a inclusão do método extract_data_from_csv() na classe DataExtractor do arquivo data_extractor.py.
-# 2)a partir dai, faremos a geração de texto para criar acrescentar código no arquivo teste_driver.c (usando o script_generator) do arquivo data_management.py
-# 2.1)incluiremos: o arquivo input.csv para ser lido linha a linha pelo programa no teste_driver.c e o arquivo output.csv para ser comparado com a saída do programa
-# e então um novo arquivo armazenando os resultados esperados e o resultado real.
-
-
-# futuro:
-# 1)incluir a análise estática no código
-# 2)usar o subprocess, para automatizar a execução do teste_driver.c
-# 3)levantamento dos possíveis erros causados pela inconsistencia de path dos arquivos
+ @date: 2024-11-12 17:29
+ @author: Aline Andreotti Urna
+ @e-mail: aline.urna@gmail.com
+"""
 
 from modules.test_driver.data_extractor import DataExtractor
 import shutil
+import pandas as pd
+from models.parameter import Parameter
 
 
-class TestDriverGenerator:
+class TestDriver:
 
-    def _generate_header(self, out_cols):
-        header = "out0"
-        for i in range(out_cols - 1):
-            header += f",out{i+1}"
+    def typing_mapping(self, parameters):
+        type_mapping = {
+            'kcg_int': 'int',
+            'kcg_bool': 'unsigned char',
+            'kcg_real': 'double',
+            'kcg_char': 'unsigned char'
+        }
+        
+        format_mapping = {
+            'int': '%d',
+            'char': '%c',  # Usando %c para um único caractere
+            'float': '%f',
+            'double': '%lf',
+            'long': '%ld',
+            'short': '%hd',
+            'unsigned int': '%u',
+            'unsigned char': '%c',  # Usando %c para um único caractere sem sinal
+            'unsigned long': '%lu',
+            'unsigned short': '%hu',
+            'long long': '%lld',
+            'long double': '%Lf',
+            'void': '',  # void não tem um especificador de formato
+            'bool': '%d',  # bool geralmente é representado como int em C
+            'size_t': '%zu',
+            'int8_t': '%d',  # Usando %d para int8_t
+            'int16_t': '%d',  # Usando %d para int16_t
+            'int32_t': '%d',  # Usando %d para int32_t
+            'int64_t': '%ld',  # Usando %ld para int64_t
+            'uint8_t': '%u',  # Usando %u para uint8_t
+            'uint16_t': '%u',  # Usando %u para uint16_t
+            'uint32_t': '%u',  # Usando %u para uint32_t
+            'uint64_t': '%lu'  # Usando %lu para uint64_t
+        }
+        
+               
+        new_parameters = []
+        for param in parameters:
+            new_type = type_mapping.get(param.type, param.type)
+            new_parameters.append(Parameter(new_type, param.name, param.is_input))
+        # Print new_parameters for debugging
+        # for param in new_parameters:
+        #     print(f"name: {param.name}, type: {param.type}, Is Input: {param.is_input}")    
+        
+        return new_parameters, format_mapping
+    
+    def create_variables(self,CType_parameters):
+        # Cria uma lista de strings no formato "parameter.type parameter.name;"
+        variable_strings = [
+            f"\t{param.type} {param.name};"
+            for param in CType_parameters
+        ]
+
+        # Junta todas as strings em uma única string, com cada uma em sua linha
+        variable_strings = '\n'.join(variable_strings)
+        return variable_strings
+    
+    def header_generator(self, CType_parameters):
+        # Cria uma lista de strings no formato "parameter.name"
+        header = [param.name for param in CType_parameters if param.is_input == 0]
+        
+        # Junta todas as strings em uma única string, com cada uma separada por vírgula
+        header = ', '.join(header)
         return header
+    
+    def generate_formatting_code(self, params):
+        
+        atoi= ['int', 'short', 'unsigned int', 'unsigned short', 'bool', 'size_t','int8_t', 'int16_t', 'int32_t', 'uint8_t', 'uint16_t', 'uint32_t']
+        atof= ['float', 'double', 'long double']
+        atol= ['long', 'unsigned long']
+        atoll= ['long long', 'int64_t', 'uint64_t']
+        
+        code_lines = []
+        
+        for param in params:
+            if param.is_input == 1:
+                code_lines.append('\t\ttoken = strtok(NULL, ",");')
+                conversion_type = ''
+                if param.type in atoi:
+                    conversion_type = 'atoi'
+                elif param.type in atof:
+                    conversion_type = 'atof'
+                elif param.type in atol:
+                    conversion_type = 'atol'
+                elif param.type in atoll:
+                    conversion_type = 'atoll'
+                if conversion_type != '':
+                    code_lines.append(f'\t\tif (token != NULL) {param.name} = {conversion_type}(token);')
+                else:
+                    code_lines.append(f'\t\tif (token != NULL) {param.name} = token[0];')
+        return code_lines
+    
+    
+    def sut_caller(self, CType_parameters, sut_name):   
+        param_strings = []
+        for param in CType_parameters:
+            if param.is_input == 0:
+                param_strings.append(f'&{param.name}')
+            else:
+                param_strings.append(param.name)
+        sut_call = f'{sut_name}({", ".join(param_strings)});'
+        return sut_call 
+    
+    def write_results_formatter(self, CType_parameters, formatter_spec):
+        # Criar a string de formato e a lista de variáveis
+        format_string = []
+        variables_list = []
 
-    def _test_driver_generator(self, input_shape, output_shape):
+        for param in CType_parameters:
+            if param.is_input == 0:
+                format_spec = formatter_spec.get(param.type)
+                if format_spec:
+                    format_string.append(format_spec)
+                    variables_list.append(param.name)
+
+        format_string = ",".join(format_string)
+        variables_list= ",".join(variables_list)
+
+        return format_string + "\\n", variables_list
+        
+    
+    def _test_driver_generator(self, input_path, output_path, parameters, result_file_path):
+        
+        CType_parameters, formatter_spec = self.typing_mapping(parameters)
+
         # Caminho do arquivo .c
-        original_file_path = "./SUT/test_driver.c"  # TO DO: automatizar a busca do arquivo teste_driver.c
+        original_file_path = "./modules/test_driver/c_files/test_driver.c"  # TO DO: automatizar a busca do arquivo teste_driver.c
 
         # Caminho do arquivo de backup
-        backup_file = "./test_driver/c_files/test_driver_model.c"
+        backup_file = "./modules/test_driver/c_files/test_driver_model.c"
         # Caminho do arquivo original
 
         # Copiar o conteúdo do arquivo de backup para o arquivo test_driver.c
@@ -49,74 +155,75 @@ class TestDriverGenerator:
         # print(conteudo)
         # Substituir os valores específicos
         conteudo = conteudo.replace(
-            "// include SutFileName.h", f'#include "SUT.h"'
+            "// include SutFileName.h", f'#include "../../../tests/data/SUT/SUT.h"'
         )  # TO DO: automatizar a inclusão do arquivo sut de interesse
-        conteudo = conteudo.replace("// define ROWS", f"#define ROWS {input_shape[0]}")
-        conteudo = conteudo.replace("// define COLS", f"#define COLS {input_shape[1]}")
-        conteudo = conteudo.replace(
-            "// define OUT_COLS", f"#define OUT_COLS {output_shape[1]}"
-        )
+        
+        input_filename = "input_file"
 
-        # Gerar dinamicamente a declaração de variáveis out
-        out_declaration = (
-            "int " + ", ".join([f"out{i}" for i in range(output_shape[1])]) + ";"
-        )  # esse int no inicio deixa fixo que todas as variáveis são inteiras
-        # mas isso deve ser modificado quando tiver o resultado da análise estática
+        result_filename = "results_file"
+        #path dinâmico para os arquivos de input.csv e output.csv
+        conteudo = conteudo.replace("// inputFile_path", f'FILE *{input_filename} = fopen("{input_path}", "r");')       
+        conteudo = conteudo.replace("// resultFile_path", f'FILE *{result_filename} = fopen("{result_file_path}", "w");')
+        # Gerar dinamicamente a declaração de variáveis
+        var_declaration = self.create_variables(CType_parameters)
 
         # Substituir a declaração de variáveis out no conteúdo
-        conteudo = conteudo.replace("// int outx", out_declaration)
+        conteudo = conteudo.replace("// init_var", var_declaration)
 
         # Gerar dinamicamente o cabeçalho
-        header = self._generate_header(
-            output_shape[1]
-        )  # output_shape[1] é o número de colunas de saída
+        header = self.header_generator(CType_parameters)
         conteudo = conteudo.replace(
             "// HeaderPlaceholder",
-            f'fprintf(results_file, "%s,%s\\n",output_line,"{header}");',
+            f'fprintf({result_filename}, "%s,%s\\n","ID,{header}");'
         )
+        
+        #Gerar dinamicamente a atribuição dos tokens de input.csv
+        #as variáveis de entrada do teste_driver.c
+        code_lines = self.generate_formatting_code(CType_parameters)
+        conteudo = conteudo.replace("// TokenAssignment", '\n'.join(code_lines))
 
         # Gerar dinamicamente a chamada da função SUT
-        sut_call = (
-            "SUT("
-            + ", ".join([f"input_data[{i}]" for i in range(input_shape[1])])
-            + ", "
-            + ", ".join([f"&out{i}" for i in range(output_shape[1])])
-            + ");"
-        )
-        # Substituir a chamada da função SUT no conteúdo
+        #enviar o nome da função SUT de interesse como parâmetro
+        # TO DO : automatizar a busca do nome da função SUT (static analyzer?)
+        sut_name = "SUT"
+        sut_call = self.sut_caller(CType_parameters, sut_name)
         conteudo = conteudo.replace("// SUT()", f"{sut_call}")
 
-        # Gerar a lista de comparações
-        comparisons = [f"out{i} == output_data[{i}]" for i in range(output_shape[1])]
-        # Combinar as comparações em uma única expressão lógica
-        comparison_expression = " && ".join(comparisons)
-        # Criar a linha de código final
-        test_result_line = f"int test_result = ({comparison_expression}) ? 1 : 0;"
-        conteudo = conteudo.replace(
-            "// PassFailComparison", test_result_line
-        )  # TO DO: aceitar todos tipos de variavel, não apenas o inteiro (talvez uma struct?)
-
-        # Gerar a string de formato
-        format_string = "%s," + ",".join(["%d"] * output_shape[1]) + "\\n"
-        # Gerar a lista de variáveis
-        variables = ["aux_output_line"] + [f"out{i}" for i in range(output_shape[1])]
-        # Combinar a string de formato e a lista de variáveis
-        fprintf_line = f'if (fprintf(results_file, "{format_string}", {", ".join(variables)}) < 0) {{'
-        conteudo = conteudo.replace("// LineConcat", fprintf_line)
+        format_string, variable_list = self.write_results_formatter(CType_parameters, formatter_spec)
+        # # Gerar a string de formato
+        # format_string = "%s," + ",".join(["%d"] *( output_shape[1]-1)) + "\\n"
+        # # Gerar a lista de variáveis
+        # variables = ["aux_output_line"] + [f"out{i}" for i in range(output_shape[1]-1)]
+        # # Combinar a string de formato e a lista de variáveis
+        fprintf_line = f'if (fprintf({result_filename}, "%f,{format_string}", time_id,{variable_list}) < 0) {{'
+        conteudo = conteudo.replace("// RESULTS.CSV", fprintf_line)
 
         # Escrever o conteúdo atualizado de volta no arquivo
         with open(original_file_path, "w") as arquivo:
             arquivo.write(conteudo)
 
-        # print(f"Valores substituídos no arquivo {original_file_path}")
+        #print(f"Valores substituídos no arquivo {original_file_path}")
 
         return
 
-    def generate_test_driver(self, file_path):
+    def generate_test_driver(self, file_path, result_file_path):
         data_extractor = DataExtractor(file_path)
-        input_shape, output_shape = data_extractor.extract_data_from_excel()
+        input_path, output_path, parameters = data_extractor.extract_data()
 
-        # print(f"input.csv - Linhas: {input_shape[0]}, Colunas: {input_shape[1]}")
+        # print(f"input.csv - Linhas: {input_shape[0]}, Colunas: {input_shape[1]-1}")
         # print(f"output.csv - Linhas: {output_shape[0]}, Colunas: {output_shape[1]}")
 
-        self._test_driver_generator(input_shape, output_shape)
+        self._test_driver_generator(input_path, output_path,parameters, result_file_path)
+        
+        
+        #pro generator, precisamos de dinamicamente criar o código para o teste_driver.c, que consiste em alterações
+        #dinamicas de acordo com a quantidade de colunas de saída e entrada, e a quantidade de linhas de entrada.
+        #na planilha de teste, pode vir mais colunas, mas o teste driver vai usar apenas as colunas de entrada e saída,
+        #ignoarando o restante.
+        #duvida?? como vamos fazer o mapeamento das entradas e saídas??
+        #exemplo: no sut a entrada chama suti0,suti1,suti2, e a saída chama suto0,suto1
+        #mas quando chamamos a função compA, ela tem como entrada a0,a1,a2, e como saída b0,b1?
+        #como vamos fazer essa correspondencia??
+        #precisamos fazer a correlação entre os nomes das variáveis de entrada e saída do sut e do teste_driver.c
+        #pra isso vou usar as strings parameter do analisador estático, e comparar com os nomes das variáveis de entrada e saída
+        #dos arquivos inputs e outputs, e provavelmente o tolerance (ainda não refleti sobre isso).

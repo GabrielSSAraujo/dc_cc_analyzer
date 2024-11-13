@@ -12,16 +12,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// include SutFileName.h
+#include "../../../tests/data/SUT/SUT.h"
 
 int main()
 {
     /*init data*/
-// init_var
+	int SUTI1;
+	int SUTI2;
+	int SUTI3;
+	int SUTI4;
+	int SUTI5;
+	int SUTI6;
+	int SUTI7;
+	int SUTO6;
+	int SUTO5;
+	int SUTO4;
+	int SUTO3;
+	int SUTO2;
+	int SUTO1;
     float time_id;
     // Criar arquivos CSV
-    // inputFile_path
-    // resultFile_path
+    FILE *input_file = fopen("./tests/data/inputs.csv", "r");
+    FILE *results_file = fopen("./tests/data/results_sut.csv", "w");
 
     if (input_file == NULL || results_file == NULL)
     {
@@ -32,8 +44,9 @@ int main()
     char line[256];      // variável para armazenar a linha lida do arquivo de entrada
 
     // Escrever a primeira linha (cabeçalho)
-    // HeaderPlaceholder
-
+    fprintf(results_file, "%s,%s\n","ID,SUTO6, SUTO5, SUTO4, SUTO3, SUTO2, SUTO1");
+    
+    
     // Ler o arquivo de entrada
     while (fgets(line, sizeof(line), input_file)) {
         // Remover o caractere de nova linha, se presente
@@ -45,12 +58,25 @@ int main()
         // leitura dos valores do input.csv e atribuição a variáveis.
         //primeira coluna: convencionado que é o time_id
         if (token != NULL) time_id= atof(token);
-// TokenAssignment
+		token = strtok(NULL, ",");
+		if (token != NULL) SUTI1 = atoi(token);
+		token = strtok(NULL, ",");
+		if (token != NULL) SUTI2 = atoi(token);
+		token = strtok(NULL, ",");
+		if (token != NULL) SUTI3 = atoi(token);
+		token = strtok(NULL, ",");
+		if (token != NULL) SUTI4 = atoi(token);
+		token = strtok(NULL, ",");
+		if (token != NULL) SUTI5 = atoi(token);
+		token = strtok(NULL, ",");
+		if (token != NULL) SUTI6 = atoi(token);
+		token = strtok(NULL, ",");
+		if (token != NULL) SUTI7 = atoi(token);
         
-        // SUT()
+        SUT(SUTI1, SUTI2, SUTI3, SUTI4, SUTI5, SUTI6, SUTI7, &SUTO6, &SUTO5, &SUTO4, &SUTO3, &SUTO2, &SUTO1);
 
         //vamos escrever no arquivo de resultados
-        // RESULTS.CSV
+        if (fprintf(results_file, "%f,%d,%d,%d,%d,%d,%d\n", time_id,SUTO6,SUTO5,SUTO4,SUTO3,SUTO2,SUTO1) < 0) {
         perror("Erro ao escrever no arquivo");
         fclose(results_file);
         return 1;
