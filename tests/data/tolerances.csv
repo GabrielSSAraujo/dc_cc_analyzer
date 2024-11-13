@@ -1,4 +1,8 @@
-Variable,Tolerance
+Variable,Tolerances
+L1,1e-05
+L2,1e-05
+L3,0
+L4,0
 SUTO6,1e-05
 SUTO5,1e-05
 SUTO4,0
