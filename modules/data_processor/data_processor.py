@@ -1,5 +1,6 @@
 import pandas as pd
 import logging
+import decimal
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -38,12 +39,15 @@ class DataProcessor:
                     tolerance = float(self.tolerances.get(column, 0))
 
                     # Check if the actual value is within tolerance of the expected output
-                    if abs(expected_value - actual_value) > tolerance:
+                    difference = abs(expected_value - actual_value)
+                    rounded_difference = round_to_match_decimals(difference, tolerance)
+                    if rounded_difference > tolerance:
                         pass_case = False
-                        break
 
                     # Check if the difference between actual result and SUTI result exceeds tolerance
-                    if abs(actual_value - suti_value) > tolerance:
+                    difference = abs(actual_value - suti_value)
+                    rounded_difference = round_to_match_decimals(difference, tolerance)
+                    if rounded_difference > tolerance:
                         logging.warning(
                             f"Warning: Difference between actual result ({actual_value}) and "
                             f"SUTI result ({suti_value}) for '{column}' at index {index} exceeds tolerance ({tolerance})."
@@ -102,3 +106,9 @@ class DataProcessor:
         # Calculate and print the percentage of exercised couplings
         self.exercised_percentage = (exercised_couplings / total_couplings) * 100
         print(f"Percentage of exercised couplings: {self.exercised_percentage:.2f}%")
+
+def round_to_match_decimals(number, reference):
+    # Determine the number of decimal places in the reference number
+    decimal_places = abs(decimal.Decimal(str(reference)).as_tuple().exponent)
+    # Round the number to match the decimal places of the reference
+    return round(number, decimal_places)
