@@ -12,6 +12,9 @@ class DataProcessor:
         self.actual_results = pd.read_csv(files_dir + 'results_sut.csv')
         self.suti_results = pd.read_csv(files_dir + 'results_suti.csv')
         self.couplings = pd.read_csv(files_dir + 'couplings.csv')
+        self.pass_rate = 0.0
+        self.exercised_percentage = 0.0
+        self.compromised_suti = False
         
         # Load tolerances as a dictionary
         tolerances_df = pd.read_csv(files_dir + 'tolerances.csv', index_col=0, header=None)
@@ -46,19 +49,18 @@ class DataProcessor:
                             f"SUTI result ({suti_value}) for '{column}' at index {index} exceeds tolerance ({tolerance})."
                             f"Instrumented SUT may be compromised."
                         )
+                        self.compromised_suti = True
             
             # Count passes/fails
             if pass_case:
                 passed_tests += 1
         
         # Calculate and log pass rate
-        pass_rate = (passed_tests / total_tests) * 100
-        print(f"Percentage of passed test cases: {pass_rate:.2f}%")
+        self.pass_rate = (passed_tests / total_tests) * 100
+        print(f"Percentage of passed test cases: {self.pass_rate:.2f}%")
         
         # Perform couplings analysis
         self.analyze_couplings()
-        
-        return pass_rate
 
     def analyze_couplings(self):
         total_couplings = 0
@@ -98,5 +100,5 @@ class DataProcessor:
                 exercised_couplings += 1
         
         # Calculate and print the percentage of exercised couplings
-        exercised_percentage = (exercised_couplings / total_couplings) * 100
-        print(f"Percentage of exercised couplings: {exercised_percentage:.2f}%")
+        self.exercised_percentage = (exercised_couplings / total_couplings) * 100
+        print(f"Percentage of exercised couplings: {self.exercised_percentage:.2f}%")
