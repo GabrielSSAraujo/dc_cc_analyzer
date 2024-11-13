@@ -9,3 +9,6 @@ test_vector/results.csv
 SUT/test_driver.c
 test_driver.exe
 .venv
+dccc_venv/
+main.py
+.gitignore
