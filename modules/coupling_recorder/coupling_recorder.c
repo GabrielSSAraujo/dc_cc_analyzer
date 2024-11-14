@@ -17,7 +17,7 @@ void recorder_start(const char* file_name) {
         return;
     }
     
-    _file = fopen(file_name, "w");
+    _file = fopen(file_name, "w+");
     if (_file == NULL) {
         printf("ERROR: Could not open %s file!", file_name);
     }
@@ -95,6 +95,10 @@ void recorder_save(float time) {
 }
 
 void recorder_stop() {
-    list_delete(_list);
+    _header_written = 0;
+    _couplings_set = 0;
+    if (!_couplings_set) {
+        list_delete(_list);
+    }
     fclose(_file);
 }

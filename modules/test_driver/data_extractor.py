@@ -56,12 +56,12 @@ class DataExtractor:
             raise ValueError("Review your test vector. The input and output must match in number of rows.")
         
         
-        input_path = "./tests/data/inputs.csv"
+        input_path = "./data/inputs.csv"
         input_df = pd.concat([df.iloc[:, time_index:time_index+1], input_df], axis=1)
         input_df.to_csv(input_path, index=False)  # TO DO:mudar o local onde salva os arquivos??
 
         
-        output_path = "./tests/data/outputs.csv"
+        output_path = "./data/outputs.csv"
         output_df = pd.concat([df.iloc[:, time_index:time_index+1], output_df], axis=1)
         output_df.to_csv(output_path, index=False)  # TO DO:mudar o local onde salva os arquivos??
 
@@ -73,7 +73,7 @@ class DataExtractor:
         tolerance_data = tolerance_data.iloc[:, ::-1]
         #mudando o nome da primeira coluna para "Variable"
         tolerance_data.iat[0,0] = "Variable"
-        tolerance_data.to_csv("./tests/data/tolerances.csv", index=False, header=False)
+        tolerance_data.to_csv("./data/tolerances.csv", index=False, header=False)
         
         #lembrete: considerar a primeira linha do tolerance.csv como o "nome das colunas"
         #ou seja, a parte importante é a segunda linha em diante.

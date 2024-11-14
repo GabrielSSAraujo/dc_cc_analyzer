@@ -18,6 +18,10 @@ List* list_create(int size) {
 }
 
 void list_delete(List *list) {
+    if (list == NULL) {
+        return;
+    }
+    
     for (int i = 0; i < list->size; i++) {
         if (list->nodes[i].data != NULL) {
             free(list->nodes[i].data);
@@ -28,6 +32,10 @@ void list_delete(List *list) {
 }
 
 void list_setNodeName(List *list, int id, const char *name) {
+    if (list == NULL) {
+        return;
+    }
+
     if (id >= list->size) {
         return;
     }
@@ -35,6 +43,10 @@ void list_setNodeName(List *list, int id, const char *name) {
 }
 
 void list_setNodeData(List *list, int id, void *data, const char *type) {
+    if (list == NULL) {
+        return;
+    }
+
     if (id >= list->size) {
         return;
     }
@@ -196,6 +208,10 @@ void list_setNodeData(List *list, int id, void *data, const char *type) {
 }
 
 void list_printNodeDataToFile(List *list, int id, FILE *file) {
+    if (list == NULL) {
+        return;
+    }
+
     if (id >= list->size) {
         return;
     }
@@ -278,6 +294,10 @@ void list_printNodeDataToFile(List *list, int id, FILE *file) {
 }
 
 void list_printNodeNameToFile(List *list, int id, FILE *file) {
+    if (list == NULL) {
+        return;
+    }
+
     if (id >= list->size) {
         return;
     }
@@ -291,6 +311,10 @@ void list_printNodeNameToFile(List *list, int id, FILE *file) {
 }
 
 int list_getNodeId(List *list, const char *name) {
+    if (list == NULL) {
+        return -1;
+    }
+
     for (int i = 0; i < list->size; i++) {
         if (!strcmp(name, list->nodes[i].name)) {
             return i;

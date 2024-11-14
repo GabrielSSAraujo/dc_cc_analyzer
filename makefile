@@ -8,7 +8,8 @@ PROJ_NAME=testdriver
 # Source .c files
 C_SOURCE=$(shell find $(pd) -name '*.c' -not -name 'main.c' -not -name 'SUT.c' -not -name 'suti.c')
 
-TESTDRIVER=./modules/test_driver/c_files/test_driver.c
+TESTDRIVER_SUT=./modules/test_driver/c_files/test_driver_sut.c
+TESTDRIVER_SUTI=./modules/test_driver/c_files/test_driver_suti.c
 COUPLING_RECORDER=./modules/coupling_recorder
 
 # Object files
@@ -29,16 +30,19 @@ all: testdriver_sut testdriver_suti moveObjsToDirectory
 $(PROJ_NAME): $(OBJ)
 	$(CC) -o $@ $^ -o $@
 
-testdriver_sut: $(OBJ) test_driver.o list.o coupling_recorder.o $(pd)/sut.o
+testdriver_sut: $(OBJ) test_driver_sut.o list.o coupling_recorder.o $(pd)/sut.o
 	$(CC) -o $@ $^ -o $@
 
-testdriver_suti: $(OBJ) test_driver.o list.o coupling_recorder.o $(pd)/suti.o
+testdriver_suti: $(OBJ) test_driver_suti.o list.o coupling_recorder.o $(pd)/suti.o
 	$(CC) -o $@ $^ -o $@
 
 %.o: %.c
 	$(CC) -o $@ $(CC_FLAGS) $<
 
-test_driver.o: $(TESTDRIVER)
+test_driver_sut.o: $(TESTDRIVER_SUT)
+	$(CC) -o $@ $(CC_FLAGS) $<
+
+test_driver_suti.o: $(TESTDRIVER_SUTI)
 	$(CC) -o $@ $(CC_FLAGS) $<
 
 $(pd)/sut.o: $(pd)/SUT.c
@@ -57,7 +61,7 @@ coupling_recorder.o: $(COUPLING_RECORDER)/coupling_recorder.c list.o
 moveObjsToDirectory:
 	@ mkdir -p objects
 	@ mv $(OBJ) objects
-	@ mv test_driver.o objects
+	@ mv test_driver_sut.o test_driver_suti.o objects
 	@ mv $(pd)/sut.o $(pd)/suti.o coupling_recorder.o list.o objects
 
 clean:

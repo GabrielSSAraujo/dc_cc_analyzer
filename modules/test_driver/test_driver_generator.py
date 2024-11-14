@@ -90,10 +90,10 @@ class TestDriver:
         return format_string + "\\n", variables_list
         
     
-    def _test_driver_generator(self, input_path, path_sut, result_file_path, CType_parameters,formatter_spec):
+    def _test_driver_generator(self, input_path, path_sut, result_file_path, original_file_path, CType_parameters,formatter_spec):
 
         # Caminho do arquivo .c
-        original_file_path = "./modules/test_driver/c_files/test_driver.c"  # TO DO: automatizar a busca do arquivo teste_driver.c
+        # original_file_path = "./modules/test_driver/c_files/test_driver.c"  # TO DO: automatizar a busca do arquivo teste_driver.c
 
         # Caminho do arquivo de backup
         backup_file = "./modules/test_driver/c_files/test_driver_model.c"
@@ -158,14 +158,14 @@ class TestDriver:
 
         return
 
-    def generate_test_driver(self, file_path, path_sut, result_file_path, parameters, CType_parameters, formatter_spec):
+    def generate_test_driver(self, file_path, path_sut, result_file_path, original_file_path, parameters, CType_parameters, formatter_spec):
         data_extractor = DataExtractor(file_path)
         input_path, output_path = data_extractor.extract_data(parameters)
 
         # print(f"input.csv - Linhas: {input_shape[0]}, Colunas: {input_shape[1]-1}")
         # print(f"output.csv - Linhas: {output_shape[0]}, Colunas: {output_shape[1]}")
 
-        self._test_driver_generator(input_path, path_sut, result_file_path, CType_parameters, formatter_spec)
+        self._test_driver_generator(input_path, path_sut, result_file_path, original_file_path, CType_parameters, formatter_spec)
         
         
         #pro generator, precisamos de dinamicamente criar o código para o teste_driver.c, que consiste em alterações

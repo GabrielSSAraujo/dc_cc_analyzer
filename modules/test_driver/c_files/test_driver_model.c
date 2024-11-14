@@ -36,7 +36,7 @@ int main()
     // Escrever a primeira linha (cabeçalho)
     // HeaderPlaceholder
 
-    recorder_start("../../data/couplings.csv");
+    recorder_start("./data/couplings.csv");
 
     // Ler o arquivo de entrada
     while (fgets(line, sizeof(line), input_file)) {
