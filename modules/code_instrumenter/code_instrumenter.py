@@ -52,7 +52,7 @@ class CodeInstrumenter:
             main_func,
             "recorder_setCouplings",
             len(recorder_param),
-            ", ".join(f"'{item}'" for item in recorder_param),
+            ", ".join(f'"{item}"' for item in recorder_param),
         )
         inserter.visit(self._ast)
 

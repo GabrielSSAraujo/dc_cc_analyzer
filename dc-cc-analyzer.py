@@ -21,6 +21,7 @@ if __name__ == "__main__":
 
     path_sut = sys.argv[1]
     path_testvector = sys.argv[2]
+    dir_name = os.path.dirname(path_sut)
 
     # Get coupling data from SUT
     static_analyzer = StaticAnalyzer()
@@ -38,35 +39,47 @@ if __name__ == "__main__":
     # # Format Instrumented SUT (sut_inst.c)
     code_formatter = CodeFormatter(path_sut, static_analyzer)
     code = code_formatter.format_code(preprocessed_code)
+    include_abs_path_recorder = f'#include "{os.path.join(os.getcwd(), "modules", "coupling_recorder", "coupling_recorder.h")}"\n'
 
-    # # Create sut_inst.c file
-    with open(os.path.dirname(path_sut) + "/sut_inst.c", "w+") as out_file:
+    code = include_abs_path_recorder + code
+
+    # # # Create sut_inst.c file
+    with open(dir_name + "/suti.c", "w+") as out_file:
         out_file.write(code)
-
-    # # Compile Test Driver with Instrumented SUT and Original SUT
-    dir_name = os.path.dirname(path_sut)
-    compilation = subprocess.run(["make", "all", f"pd={dir_name}"])
 
     # #Execute Test Driver with Original SUT
     main_funtion = static_analyzer.get_func_metadata("SUT")
+
+    CType_parameters_sut = []
+    formatter_spec_sut =  {}
+    for param in main_funtion.parameters:
+        format = types.get_format_from_type(str(param.type))
+        param.type = types.type_list[param.type]
+        CType_parameters_sut.append(param)
+        formatter_spec_sut[param.type] = format
+
+    # static_analyzer.
     td_generator = TestDriver()
-    td_generator.generate_test_driver(path_testvector, "./data/results_sut.csv", main_funtion.parameters)
+    td_generator.generate_test_driver(path_testvector,dir_name+"/SUT.h" , "./data/results_sut.csv", main_funtion.parameters, CType_parameters_sut, formatter_spec_sut)
 
-    # if compilation.returncode == 0:
-    #     execution = subprocess.run(["./testdriver_sut"], capture_output=True, text=True)
-    #     print(execution.stdout)
+    # Compile Test Driver with Instrumented SUT and Original SUT
+    compilation = subprocess.run(["make", "all", f"pd={dir_name}"])
 
-    # # Setup Test Driver
-    # td_generator = TestDriver()
-    # td_generator.generate_test_driver(path_testvector, "./data/results_suti.csv")
+    if compilation.returncode == 0:
+        execution = subprocess.run(["./testdriver_sut"], capture_output=True, text=True)
+        print(execution.stdout)
 
-    # # Execute Test Driver with Instrumented SUT
-    # if compilation.returncode == 0:
-    #     # Executar o programa compilado
-    #     execution = subprocess.run(["./testdriver_suti"], capture_output=True, text=True)
-    #     print(execution.stdout) # debug
+    # Setup Test Driver
+    td_generator = TestDriver()
+    td_generator.generate_test_driver(path_testvector,dir_name+"/SUT.h", "./data/results_suti.csv", main_funtion.parameters, CType_parameters_sut, formatter_spec_sut)
+
+    # Execute Test Driver with Instrumented SUT
+    if compilation.returncode == 0:
+        # Executar o programa compilado
+        execution = subprocess.run(["./testdriver_suti"], capture_output=True, text=True)
+        print(execution.stdout) # debug
     
-    # # Analyze data produced by test driver execution
+    # Analyze data produced by test driver execution
     # data_processor = DataProcessor("./data/")
     # data_processor.analyze()
 

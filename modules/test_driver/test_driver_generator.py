@@ -15,51 +15,6 @@ from models.parameter import Parameter
 
 class TestDriver:
 
-    def typing_mapping(self, parameters):
-        type_mapping = {
-            'kcg_int': 'int',
-            'kcg_bool': 'unsigned char',
-            'kcg_real': 'double',
-            'kcg_char': 'unsigned char'
-        }
-        
-        format_mapping = {
-            'int': '%d',
-            'char': '%c',  # Usando %c para um único caractere
-            'float': '%f',
-            'double': '%lf',
-            'long': '%ld',
-            'short': '%hd',
-            'unsigned int': '%u',
-            'unsigned char': '%c',  # Usando %c para um único caractere sem sinal
-            'unsigned long': '%lu',
-            'unsigned short': '%hu',
-            'long long': '%lld',
-            'long double': '%Lf',
-            'void': '',  # void não tem um especificador de formato
-            'bool': '%d',  # bool geralmente é representado como int em C
-            'size_t': '%zu',
-            'int8_t': '%d',  # Usando %d para int8_t
-            'int16_t': '%d',  # Usando %d para int16_t
-            'int32_t': '%d',  # Usando %d para int32_t
-            'int64_t': '%ld',  # Usando %ld para int64_t
-            'uint8_t': '%u',  # Usando %u para uint8_t
-            'uint16_t': '%u',  # Usando %u para uint16_t
-            'uint32_t': '%u',  # Usando %u para uint32_t
-            'uint64_t': '%lu'  # Usando %lu para uint64_t
-        }
-        
-               
-        new_parameters = []
-        for param in parameters:
-            new_type = type_mapping.get(param.type, param.type)
-            new_parameters.append(Parameter(new_type, param.name, param.pointer_depth))
-        # Print new_parameters for debugging
-        # for param in new_parameters:
-        #     print(f"name: {param.name}, type: {param.type}, Is Input: {param.is_input}")    
-        
-        return new_parameters, format_mapping
-    
     def create_variables(self,CType_parameters):
         # Cria uma lista de strings no formato "parameter.type parameter.name;"
         variable_strings = [
@@ -124,7 +79,7 @@ class TestDriver:
 
         for param in CType_parameters:
             if param.pointer_depth:
-                format_spec = formatter_spec.get(param.type)
+                format_spec = formatter_spec[param.type]
                 if format_spec:
                     format_string.append(format_spec)
                     variables_list.append(param.name)
@@ -135,9 +90,7 @@ class TestDriver:
         return format_string + "\\n", variables_list
         
     
-    def _test_driver_generator(self, input_path, output_path, parameters, result_file_path):
-        
-        CType_parameters, formatter_spec = self.typing_mapping(parameters)
+    def _test_driver_generator(self, input_path, path_sut, result_file_path, CType_parameters,formatter_spec):
 
         # Caminho do arquivo .c
         original_file_path = "./modules/test_driver/c_files/test_driver.c"  # TO DO: automatizar a busca do arquivo teste_driver.c
@@ -155,7 +108,7 @@ class TestDriver:
         # print(conteudo)
         # Substituir os valores específicos
         conteudo = conteudo.replace(
-            "// include SutFileName.h", f'#include "../../../tests/data/SUT/SUT.h"'
+            "// include SutFileName.h", f'#include "../../../{path_sut}"'
         )  # TO DO: automatizar a inclusão do arquivo sut de interesse
         
         input_filename = "input_file"
@@ -174,7 +127,7 @@ class TestDriver:
         header = self.header_generator(CType_parameters)
         conteudo = conteudo.replace(
             "// HeaderPlaceholder",
-            f'fprintf({result_filename}, "%s,%s\\n","ID,{header}");'
+            f'fprintf({result_filename}, "%s,%s\\n","Time","{header}");'
         )
         
         #Gerar dinamicamente a atribuição dos tokens de input.csv
@@ -188,7 +141,6 @@ class TestDriver:
         sut_name = "SUT"
         sut_call = self.sut_caller(CType_parameters, sut_name)
         conteudo = conteudo.replace("// SUT()", f"{sut_call}")
-
         format_string, variable_list = self.write_results_formatter(CType_parameters, formatter_spec)
         # # Gerar a string de formato
         # format_string = "%s," + ",".join(["%d"] *( output_shape[1]-1)) + "\\n"
@@ -206,14 +158,14 @@ class TestDriver:
 
         return
 
-    def generate_test_driver(self, file_path, result_file_path, parameters):
+    def generate_test_driver(self, file_path, path_sut, result_file_path, parameters, CType_parameters, formatter_spec):
         data_extractor = DataExtractor(file_path)
         input_path, output_path = data_extractor.extract_data(parameters)
 
         # print(f"input.csv - Linhas: {input_shape[0]}, Colunas: {input_shape[1]-1}")
         # print(f"output.csv - Linhas: {output_shape[0]}, Colunas: {output_shape[1]}")
 
-        self._test_driver_generator(input_path, output_path,parameters, result_file_path)
+        self._test_driver_generator(input_path, path_sut, result_file_path, CType_parameters, formatter_spec)
         
         
         #pro generator, precisamos de dinamicamente criar o código para o teste_driver.c, que consiste em alterações
