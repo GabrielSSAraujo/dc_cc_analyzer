@@ -34,7 +34,7 @@ class FunctionCallInserter(c_ast.NodeVisitor):
         # Create a new function call to print coupled data
         arguments, params, type = None, None, None
         if self.args:
-            arguments = c_ast.Constant(type="string", value=f'"{self.args}"')
+            arguments = c_ast.ID(name=f"{self.args}")
         if self.param:
             params = c_ast.ID(name=f"{self.param}")
         if self.type:

@@ -22,10 +22,17 @@ class CodeInstrumenter:
         # Handle AST and insert data
         inserter = FunctionCallInserter(main_func)
 
+        # stores the parameters name
+        recorder_param = []
+
         # for each coupled function get which parameter is coupled and instrument the funtion
         for coupled_data in self._coupled_data:
             func_name = coupled_data.function_b
             for parameter in coupled_data.parameters:
+                
+                # fill parameters list
+                recorder_param.append(parameter.name)
+
                 # define the instrument function
                 before_name = ""
                 if not parameter.pointer_depth:
@@ -33,12 +40,21 @@ class CodeInstrumenter:
                 inserter.set_data_to_insert(
                     func_name,
                     "recorder_record",
-                    f"{parameter.name}",
+                    f'"{parameter.name}"',
                     before_name + parameter.name,
                     '"'+self.type_list[parameter.type]+'"',
                 )
                 # visit ast and insert function
                 inserter.visit(self._ast)
+              
+        # initializing coupling list in recorder module
+        inserter.set_data_to_insert(
+            main_func,
+            "recorder_setCouplings",
+            len(recorder_param),
+            ", ".join(f"'{item}'" for item in recorder_param),
+        )
+        inserter.visit(self._ast)
 
         # compara codigo c com os includes pre-processados e retorna diferença
         code = self._generate_c_code(self._ast)
