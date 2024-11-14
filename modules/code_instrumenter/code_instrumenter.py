@@ -43,6 +43,7 @@ class CodeInstrumenter:
                     f'"{parameter.name}"',
                     before_name + parameter.name,
                     '"'+self.type_list[parameter.type]+'"',
+                    parameter
                 )
                 # visit ast and insert function
                 inserter.visit(self._ast)

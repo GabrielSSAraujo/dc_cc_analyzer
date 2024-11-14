@@ -19,7 +19,7 @@ class DataExtractor:
     def extract_data(self, parameters):
         # Verifica a extensão do arquivo e lê o arquivo
         file_extension = os.path.splitext(self.file_path)[1]
-        if file_extension == ".xlsx":
+        if file_extension == ".xlsx" or file_extension == ".xls":
             # Lê o arquivo Excel 'dados.xlsx' na aba 'TestVec' com cabeçalho na segunda linha (índice 1)
             df = pd.read_excel(self.file_path, sheet_name="TestVec", header=1)
             # Lê a linha específica [1°linha] (skiprows é zero-indexado)

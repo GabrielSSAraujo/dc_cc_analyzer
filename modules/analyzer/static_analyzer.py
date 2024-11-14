@@ -122,6 +122,7 @@ class FuncDefVisitor(c_ast.NodeVisitor):
 class FunctionAnalyzer:
     def __init__(self, functions):
         self.functions = functions
+        self.written_coupling = []
 
     def _identify_coupled_parameters(
         self, func_a_parameters, func_b_parameters, function_a_return
@@ -136,19 +137,29 @@ class FunctionAnalyzer:
         ]
 
         for index, param in enumerate(func_b_parameters):
-            if not param.pointer_depth:
-                # check coupling between function return and parameters
-                if function_a_return == param:
-                    coord_a.append(-1)
-                    coord_b.append(index)
-                    parameters.append(function_a_return)
+            # if not param.pointer_depth:
+            # check coupling between function return and parameters
+            if function_a_return == param:
+                coord_a.append(-1)
+                coord_b.append(index)
+                if function_a_return.name in self.written_coupling:
+                    function_a_return.old_name = function_a_return.name
+                    function_a_return.name  = function_a_return.name+"_aux"
+                    # function_a_return.name = function_a_return.name+"_aux"
+                parameters.append(function_a_return)
+                self.written_coupling.append(function_a_return.name)
 
-                # check coupling between parameters
-                for a_param in output_params_func_a:
-                    if param == a_param[1]:
-                        coord_b.append(index)
-                        coord_a.append(a_param[0])
-                        parameters.append(param)
+            # check coupling between parameters
+            for a_param in output_params_func_a:
+                if param == a_param[1]:
+                    coord_b.append(index)
+                    coord_a.append(a_param[0])
+                    if param.name in self.written_coupling:
+                        param.old_name = param.name 
+                        param.name = param.name+"_aux"
+
+                    parameters.append(param)
+                    self.written_coupling.append(param.name)
         return coord_a, coord_b, parameters
 
     def _analyze_parameter_coupling(self, main_function):

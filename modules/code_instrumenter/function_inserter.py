@@ -1,5 +1,22 @@
 from pycparser import c_ast
 
+# class DeclarationInserter(c_ast.NodeVisitor):
+#     def __init__(self, main_func, op, parameter):
+#         self.main_func  = main_func
+#         self.parameter = parameter
+
+#     def generic_visit(self, node):
+#         # parent nodes are kept and the child nodes are updated
+#         for child_name, child in node.children():
+#             self.visit(child)
+
+#     def visit_FuncDef(self, node):
+#         # if the first time, add includes
+#         if node.decl.name == self.main_func:
+#             # print(node)
+#             self.visit(node.body)
+
+#     def visit_Compound(self, node):
 
 class FunctionCallInserter(c_ast.NodeVisitor):
     def __init__(self, main_func):
@@ -11,13 +28,14 @@ class FunctionCallInserter(c_ast.NodeVisitor):
         self.type = None
 
     def set_data_to_insert(
-        self, func_name, func_name_to_insert, args=None, param=None, type=None
+        self, func_name, func_name_to_insert, args=None, func_param=None, type=None, param= None
     ):
         self.func_name = func_name
         self.args = args if args is not None else []
         self.func_name_to_insert = func_name_to_insert
-        self.param = param
+        self.param = func_param
         self.type = type
+        self.parameter = param
 
     def generic_visit(self, node):
         # parent nodes are kept and the child nodes are updated
@@ -64,4 +82,23 @@ class FunctionCallInserter(c_ast.NodeVisitor):
             print("[Code Instrumenter][Error]: The main function has no body\n")
         if ind >= 0:
             # insert function
-            node.block_items.insert(ind, function_call)
+            if(hasattr(self.parameter, "old_name") and self.parameter.old_name != None):
+                decl_param = c_ast.Decl(
+                    name=str(self.parameter.name),
+                    type=c_ast.TypeDecl(
+                        declname=str(self.parameter.name),
+                        quals=[],
+                        align=None,
+                        type=c_ast.IdentifierType(names=[str(self.parameter.type)]),
+                    ),
+                    init=c_ast.ID(str(self.parameter.old_name)),
+                    quals=[],
+                    storage=[],
+                    funcspec=[],
+                    align=[],
+                    bitsize=None,
+                )
+                node.block_items.insert(ind, decl_param)
+                node.block_items.insert(ind+1, function_call)
+            else:
+                node.block_items.insert(ind, function_call)
