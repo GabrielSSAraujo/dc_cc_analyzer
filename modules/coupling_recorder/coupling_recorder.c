@@ -4,7 +4,7 @@
 #include <stdarg.h>
 
 #include "coupling_recorder.h"
-#include "./list/list.h"
+#include "list.h"
 
 // Internal modules variables
 FILE *_file = NULL;
