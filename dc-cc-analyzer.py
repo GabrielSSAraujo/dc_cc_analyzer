@@ -38,7 +38,7 @@ if __name__ == "__main__":
     # # Generate preprocessed Instrumented SUT from AST
     code_instrumenter = CodeInstrumenter()
     preprocessed_code = code_instrumenter.instrument_code(
-        ast, coupled_data, "SUT", typedef_to_primitive_type
+        ast, coupled_data, "sut", typedef_to_primitive_type
     )  # gera SUTI.c
 
     # # Format Instrumented SUT (suti.c)
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     td_generator = TestDriver()
     td_generator.generate_test_driver(
         path_testvector,
-        dir_name + "/SUT.h",
+        dir_name + "/sut.h",
         "./data/results_sut.csv",
         "./modules/test_driver/c_files/test_driver_sut.c",
         main_funtion.parameters,
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     td_generator = TestDriver()
     td_generator.generate_test_driver(
         path_testvector,
-        dir_name + "/SUT.h",
+        dir_name + "/sut.h",
         "./data/results_suti.csv",
         "./modules/test_driver/c_files/test_driver_suti.c",
         main_funtion.parameters,

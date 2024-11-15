@@ -1,13 +1,14 @@
 from pycparser import c_ast
 from .ast_node_structure import ASTNodeStructure
 
+
 class FunctionCallInserter(c_ast.NodeVisitor):
     def __init__(self, main_func):
         self.main_func = main_func
         self.func_name = None
         self.args = None
         self.func_name_to_insert = None
-        self.param = None
+        self.coupled_parameter = None
         self.type = None
 
     def set_data_to_insert(
@@ -19,7 +20,7 @@ class FunctionCallInserter(c_ast.NodeVisitor):
         self.param = func_param
         self.type = type
 
-    def set_new_coupled_parameter_to_insert(self, coupled_param = None):
+    def set_new_coupled_parameter_to_insert(self, coupled_param=None):
         self.coupled_parameter = coupled_param
 
     def generic_visit(self, node):
@@ -38,11 +39,8 @@ class FunctionCallInserter(c_ast.NodeVisitor):
 
         # Create a new function call to print coupled data
         function_call = ast_node_structure.get_func_call_structure(
-            self.func_name_to_insert, 
-            self.args, 
-            self.param, 
-            self.type
-            )
+            self.func_name_to_insert, self.args, self.param, self.type
+        )
 
         # if the function to be inserted is the main function, insert in the index 0
         ind = 0 if (self.func_name == self.main_func) else -1
@@ -59,15 +57,24 @@ class FunctionCallInserter(c_ast.NodeVisitor):
         else:
             print("[Code Instrumenter][Error]: The main function has no body\n")
         if ind >= 0:
-        # insert function 
+            # insert function
             # insert parameter definition and value if old_name defined(duplicated coupling)
-            if(hasattr(self.coupled_parameter, "old_name") and self.coupled_parameter.old_name != None):
-                if(self.coupled_parameter.pointer_depth == "*"):
-                    decl_param = ast_node_structure.get_delc_init_pointer_parameter_structure(self.coupled_parameter)
+            if (
+                hasattr(self.coupled_parameter, "old_name")
+                and self.coupled_parameter.old_name != None
+            ):
+                if self.coupled_parameter.pointer_depth == "*":
+                    decl_param = (
+                        ast_node_structure.get_delc_init_pointer_parameter_structure(
+                            self.coupled_parameter
+                        )
+                    )
                 else:
-                    decl_param = ast_node_structure.get_decl_init_parameter_structure(self.coupled_parameter)
+                    decl_param = ast_node_structure.get_decl_init_parameter_structure(
+                        self.coupled_parameter
+                    )
 
                 node.block_items.insert(ind, decl_param)
-                node.block_items.insert(ind+1, function_call)
+                node.block_items.insert(ind + 1, function_call)
             else:
                 node.block_items.insert(ind, function_call)

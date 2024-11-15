@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 class DataCouplingFlow:
-    def __init__(self, couplings, functions, comp_name="SUT"):
+    def __init__(self, couplings, functions, comp_name="sut"):
         self.couplings = couplings
         self.functions = functions
         self.comp_name = comp_name
