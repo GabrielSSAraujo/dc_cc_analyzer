@@ -4,7 +4,7 @@
 
 # Compiler and flags
 CC=gcc
-CFLAGS =-Wall
+CFLAGS=
 
 # Source files and output
 SRC=$(wildcard $(SRC_DIR)/*.c) # All .c files in the SRC_DIR directory must be in the root
