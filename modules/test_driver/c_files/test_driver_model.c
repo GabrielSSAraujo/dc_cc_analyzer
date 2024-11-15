@@ -38,6 +38,9 @@ int main()
 
     recorder_start("./data/couplings.csv");
 
+    // Ignore header
+    fgets(line, sizeof(line), input_file);
+
     // Ler o arquivo de entrada
     while (fgets(line, sizeof(line), input_file)) {
         // Remover o caractere de nova linha, se presente
