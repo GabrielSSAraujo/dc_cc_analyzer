@@ -1,70 +1,62 @@
-# Makefile
-# Use: make all pd=<pd>
-# Where <pd> is the path to the project directory to be compiled
+# Pass SRC_DIR as a command line parameter to this makefile
+# Example (Windows): mingw32-make all SRC_DIR=project
+# Example (Linux): make all SRC_DIR=project
 
-# Name of the project
-PROJ_NAME=testdriver
-
-# Source .c files
-# C_SOURCE=$(shell find $(pd) -name '*.c' -not -name 'main.c' -not -name 'SUT.c' -not -name 'suti.c')
-
-TESTDRIVER_SUT=./modules/test_driver/c_files/test_driver_sut.c
-TESTDRIVER_SUTI=./modules/test_driver/c_files/test_driver_suti.c
-COUPLING_RECORDER=./modules/coupling_recorder
-
-# Object files
-# OBJ=$(patsubst %.c,%.o,$(C_SOURCE))
-
-# Compiler
+# Compiler and flags
 CC=gcc
+CFLAGS =-Wall
 
-# Flags
-CC_FLAGS=-c -Wall
+# Source files and output
+SRC=$(wildcard $(SRC_DIR)/*.c) # All .c files in the SRC_DIR directory must be in the root
+SRC+=modules/coupling_recorder/coupling_recorder.c
+SRC+=modules/coupling_recorder/list.c
+SRC+=modules/test_driver/c_files/test_driver_sut.c
+SRC+=modules/test_driver/c_files/test_driver_suti.c
 
-# Clean command
-RM=rm -rf
+OBJ=$(SRC:.c=.o)
+OBJ_SUT=$(filter-out $(SRC_DIR)/suti.o modules/test_driver/c_files/test_driver_suti.o,$(OBJ))
+OBJ_SUTI=$(filter-out $(SRC_DIR)/sut.o modules/test_driver/c_files/test_driver_sut.o,$(OBJ))
+OBJ_DIR=objects
 
-# Compilation and linking
-all: testdriver_sut testdriver_suti moveObjsToDirectory
+# Default rule
+all: testdriver_sut testdriver_suti moveObjs
+# all: debug
 
-# $(PROJ_NAME): $(OBJ)
-# 	$(CC) -o $@ $^ -o $@
+# Linking the target
+testdriver_sut: $(OBJ_SUT)
+	$(CC) $(CFLAGS) -o $@ $^
 
-testdriver_sut: $(OBJ) test_driver_sut.o list.o coupling_recorder.o $(pd)/sut.o
-	$(CC) -o $@ $^ -o $@
+testdriver_suti: $(OBJ_SUTI)
+	$(CC) $(CFLAGS) -o $@ $^
 
-testdriver_suti: $(OBJ) test_driver_suti.o list.o coupling_recorder.o $(pd)/suti.o
-	$(CC) -o $@ $^ -o $@
+# Compiling source files into object files
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# %.o: %.c
-# 	$(CC) -o $@ $(CC_FLAGS) $<
+debug:
+	@ echo $(SRC)
+	@ echo ''
+	@ echo $(OBJ_SUT)
+	@ echo ''
+	@ echo $(OBJ_SUTI)
 
-test_driver_sut.o: $(TESTDRIVER_SUT)
-	$(CC) -o $@ $(CC_FLAGS) $<
+# Move
+ifeq ($(OS),Windows_NT)
+moveObjs:
+	@ if not exist $(OBJ_DIR) mkdir $(OBJ_DIR) && move $(SRC_DIR)\*.o $(OBJ_DIR)\ && move modules\test_driver\c_files\*.o $(OBJ_DIR)\ && move modules\coupling_recorder\*.o $(OBJ_DIR)\ 
+else
+moveObjs:
+	@ mkdir -p $(OBJ_DIR) && mv $(SRC_DIR)/*.o modules/test_driver/c_files/*.o modules/coupling_recorder/*.o $(OBJ_DIR)/ 
+endif
 
-test_driver_suti.o: $(TESTDRIVER_SUTI)
-	$(CC) -o $@ $(CC_FLAGS) $<
-
-$(pd)/sut.o: $(pd)/SUT.c
-	$(CC) -o $@ $(CC_FLAGS) $<
-
-$(pd)/suti.o: $(pd)/suti.c
-	$(CC) -o $@ $(CC_FLAGS) $<
-
-list.o: $(COUPLING_RECORDER)/list.c
-	$(CC) -o $@ $(CC_FLAGS) $<
-
-coupling_recorder.o: $(COUPLING_RECORDER)/coupling_recorder.c list.o 
-	$(CC) -o $@ $(CC_FLAGS) $<
-
-# Avoid polluting the original project
-moveObjsToDirectory:
-	@ mkdir -p objects
-	@ mv test_driver_sut.o test_driver_suti.o objects
-	@ mv $(pd)/sut.o $(pd)/suti.o coupling_recorder.o list.o objects
-
+# Clean up
+ifeq ($(OS),Windows_NT)
 clean:
-	@ $(RM) objects testdriver_sut testdriver_suti *~
+	@ rmdir /S /Q $(OBJ_DIR) && del testdriver_sut.exe && del testdriver_suti.exe
+else
+clean:
+	@ rm -rf $(OBJ_DIR) && rm testdriver_sut testdriver_suti
+endif
 
-# Avoid conflicts with keywords 'all' and 'clean'
+# Dependency rule
 .PHONY: all clean

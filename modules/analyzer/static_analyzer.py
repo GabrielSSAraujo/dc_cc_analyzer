@@ -242,6 +242,6 @@ class StaticAnalyzer:
         self._extract_function_definitions(ast)
 
         function_analyzer = FunctionAnalyzer(self.functions_metadata)
-        coupled_data = function_analyzer._analyze_parameter_coupling("SUT")
+        coupled_data = function_analyzer._analyze_parameter_coupling("sut")
 
         return coupled_data

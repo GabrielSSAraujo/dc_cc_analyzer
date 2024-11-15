@@ -138,9 +138,9 @@ class TestDriver:
         # Gerar dinamicamente a chamada da função SUT
         #enviar o nome da função SUT de interesse como parâmetro
         # TO DO : automatizar a busca do nome da função SUT (static analyzer?)
-        sut_name = "SUT"
+        sut_name = "sut"
         sut_call = self.sut_caller(CType_parameters, sut_name)
-        conteudo = conteudo.replace("// SUT()", f"{sut_call}")
+        conteudo = conteudo.replace("// sut()", f"{sut_call}")
         format_string, variable_list = self.write_results_formatter(CType_parameters, formatter_spec)
         # # Gerar a string de formato
         # format_string = "%s," + ",".join(["%d"] *( output_shape[1]-1)) + "\\n"

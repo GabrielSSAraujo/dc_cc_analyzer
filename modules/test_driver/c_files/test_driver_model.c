@@ -51,7 +51,7 @@ int main()
         if (token != NULL) time_id= atof(token);
 // TokenAssignment
         
-        // SUT()
+        // sut()
         recorder_save(time_id);
 
         //vamos escrever no arquivo de resultados

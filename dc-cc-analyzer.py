@@ -34,9 +34,9 @@ if __name__ == "__main__":
 
     # # Generate preprocessed Instrumented SUT from AST
     code_instrumenter = CodeInstrumenter()
-    preprocessed_code = code_instrumenter.instrument_code(ast, coupled_data, "SUT", typedef_to_primitive_type)  # gera SUTI.c
+    preprocessed_code = code_instrumenter.instrument_code(ast, coupled_data, "sut", typedef_to_primitive_type)  # gera suti.c
 
-    # # Format Instrumented SUT (sut_inst.c)
+    # # Format Instrumented SUT (suti.c)
     code_formatter = CodeFormatter(path_sut, static_analyzer)
     code = code_formatter.format_code(preprocessed_code)
     include_abs_path_recorder = f'#include "{os.path.join(os.getcwd(), "modules", "coupling_recorder", "coupling_recorder.h")}"\n'
@@ -48,7 +48,7 @@ if __name__ == "__main__":
         out_file.write(code)
 
     # #Execute Test Driver with Original SUT
-    main_funtion = static_analyzer.get_func_metadata("SUT")
+    main_funtion = static_analyzer.get_func_metadata("sut")
 
     CType_parameters_sut = []
     formatter_spec_sut =  {}
@@ -60,14 +60,14 @@ if __name__ == "__main__":
 
     # static_analyzer.
     td_generator = TestDriver()
-    td_generator.generate_test_driver(path_testvector,dir_name+"/SUT.h" , "./data/results_sut.csv", "./modules/test_driver/c_files/test_driver_sut.c", main_funtion.parameters, CType_parameters_sut, formatter_spec_sut)
+    td_generator.generate_test_driver(path_testvector,dir_name+"/sut.h" , "./data/results_sut.csv", "./modules/test_driver/c_files/test_driver_sut.c", main_funtion.parameters, CType_parameters_sut, formatter_spec_sut)
 
     # Setup Test Driver
     td_generator = TestDriver()
-    td_generator.generate_test_driver(path_testvector,dir_name+"/SUT.h", "./data/results_suti.csv", "./modules/test_driver/c_files/test_driver_suti.c", main_funtion.parameters, CType_parameters_sut, formatter_spec_sut)
+    td_generator.generate_test_driver(path_testvector,dir_name+"/sut.h", "./data/results_suti.csv", "./modules/test_driver/c_files/test_driver_suti.c", main_funtion.parameters, CType_parameters_sut, formatter_spec_sut)
 
     # Compile Test Driver with Instrumented SUT and Original SUT
-    compilation = subprocess.run(["make", "all", f"pd={dir_name}"])
+    compilation = subprocess.run(["make", "all", f"SRC_DIR={dir_name}"])
 
     if compilation.returncode == 0:
         execution = subprocess.run(["./testdriver_sut"], capture_output=True, text=True)
