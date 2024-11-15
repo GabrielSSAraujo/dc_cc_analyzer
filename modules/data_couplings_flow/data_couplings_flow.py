@@ -12,25 +12,22 @@ class DataCouplingFlow:
         self.graph = nx.DiGraph()
 
     def remove_aux_suffix(self, value):
-        # Verifica se a string termina com '_aux' e remove
+        # Check if string ends with 'aux' and remove
         while value.endswith("_aux"):
             value = value[:-4] if value.endswith("_aux") else value
         return value
 
+    # Performs a recursive analysis starting from the output to identify which couplings influence its result.
     def find_coupling_to_output(self, output, comp_name):  # b, f4
-        # olho primeiro no fluxo do calls qual a primeira função chamada
+        # find index of current function
         if comp_name in self.calls:
             start_index = self.calls.index(comp_name) - 1
         else:
             start_index = len(self.calls) - 1
 
-        for call in self.calls[
-            start_index::-1
-        ]:  # começando pelas ultimas chadas e subindo
+        for call in self.calls[start_index::-1]:  # start for the end
             if output == self.functions[call].body.function_return:
-                # identificar quem são os acoplamentos de call e passar um por vez no find:
                 for coup in self.couplings:
-                    # se a função b esta no acoplamento pego os parametros acoplados
                     if coup.function_b == call:
                         for param in coup.parameters:
                             self.graph.add_edge(param.name, output.name)
@@ -39,7 +36,6 @@ class DataCouplingFlow:
             for param in self.functions[call].parameters:
                 if self.remove_aux_suffix(param.name) == output.name:
                     for coup in self.couplings:
-                        # se a função b esta no acoplamento pego os parametros acoplados
                         if coup.function_b == call:
                             for param in coup.parameters:
                                 self.graph.add_edge(param.name, output.name)
