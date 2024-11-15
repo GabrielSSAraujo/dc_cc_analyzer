@@ -4,17 +4,19 @@ from modules.code_instrumenter.code_formatter import CodeFormatter
 from modules.code_instrumenter.code_instrumenter import CodeInstrumenter
 from modules.data_processor.data_processor import DataProcessor
 from modules.input_validator.input_validator import InputValidator
+
 # from modules.printer.printer import Printer
 from modules.test_driver.test_driver_generator import TestDriver
-
+from modules.data_couplings_flow.data_couplings_flow import DataCouplingFlow
 import sys
 import os
 import subprocess
 import platform
+import json
 
 if __name__ == "__main__":
     # python3 dc_cc.py /path-sut /path-testvec
-    
+
     # Validate inputs
     # input_validator = InputValidator(sys.argv)
     # if not InputValidator.validate():
@@ -35,7 +37,9 @@ if __name__ == "__main__":
 
     # # Generate preprocessed Instrumented SUT from AST
     code_instrumenter = CodeInstrumenter()
-    preprocessed_code = code_instrumenter.instrument_code(ast, coupled_data, "sut", typedef_to_primitive_type)  # gera suti.c
+    preprocessed_code = code_instrumenter.instrument_code(
+        ast, coupled_data, "SUT", typedef_to_primitive_type
+    )  # gera SUTI.c
 
     # # Format Instrumented SUT (suti.c)
     code_formatter = CodeFormatter(path_sut, static_analyzer)
@@ -47,12 +51,22 @@ if __name__ == "__main__":
     # # # Create sut_inst.c file
     with open(dir_name + "/suti.c", "w+") as out_file:
         out_file.write(code)
+    out_file.close()
+
+    # generate coupling_data.json with data coupling flow
+    dcf = DataCouplingFlow(coupled_data, static_analyzer.get_func_metadata())
+    dcf.analyze_data_flow()
+    dcf.save_graph("./data/data_couplings_flow/")
+    cd_json = json.dumps(dcf.get_coupling_to_output_mapping(), indent=4)
+    with open("./data/data_couplings_flow/couplings_data.json", "w+") as fp:
+        fp.write(str(cd_json))
+    fp.close()
 
     # #Execute Test Driver with Original SUT
     main_funtion = static_analyzer.get_func_metadata("sut")
 
     CType_parameters_sut = []
-    formatter_spec_sut =  {}
+    formatter_spec_sut = {}
     for param in main_funtion.parameters:
         format = types.get_format_from_type(str(param.type))
         param.type = types.type_list[param.type]
@@ -61,11 +75,27 @@ if __name__ == "__main__":
 
     # static_analyzer.
     td_generator = TestDriver()
-    td_generator.generate_test_driver(path_testvector,dir_name+"/sut.h" , "./data/results_sut.csv", "./modules/test_driver/c_files/test_driver_sut.c", main_funtion.parameters, CType_parameters_sut, formatter_spec_sut)
+    td_generator.generate_test_driver(
+        path_testvector,
+        dir_name + "/SUT.h",
+        "./data/results_sut.csv",
+        "./modules/test_driver/c_files/test_driver_sut.c",
+        main_funtion.parameters,
+        CType_parameters_sut,
+        formatter_spec_sut,
+    )
 
     # Setup Test Driver
     td_generator = TestDriver()
-    td_generator.generate_test_driver(path_testvector,dir_name+"/sut.h", "./data/results_suti.csv", "./modules/test_driver/c_files/test_driver_suti.c", main_funtion.parameters, CType_parameters_sut, formatter_spec_sut)
+    td_generator.generate_test_driver(
+        path_testvector,
+        dir_name + "/SUT.h",
+        "./data/results_suti.csv",
+        "./modules/test_driver/c_files/test_driver_suti.c",
+        main_funtion.parameters,
+        CType_parameters_sut,
+        formatter_spec_sut,
+    )
 
     # Compile Test Driver with Instrumented SUT and Original SUT
     if platform.system() == "Windows":
@@ -80,9 +110,11 @@ if __name__ == "__main__":
     # Execute Test Driver with Instrumented SUT
     if compilation.returncode == 0:
         # Executar o programa compilado
-        execution = subprocess.run(["./testdriver_suti"], capture_output=True, text=True)
-        print(execution.stdout) # debug
-    
+        execution = subprocess.run(
+            ["./testdriver_suti"], capture_output=True, text=True
+        )
+        print(execution.stdout)  # debug
+
     # Analyze data produced by test driver execution
     # data_processor = DataProcessor("./data/")
     # data_processor.analyze()
