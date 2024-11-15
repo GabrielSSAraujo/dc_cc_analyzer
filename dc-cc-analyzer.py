@@ -10,6 +10,7 @@ from modules.test_driver.test_driver_generator import TestDriver
 import sys
 import os
 import subprocess
+import platform
 
 if __name__ == "__main__":
     # python3 dc_cc.py /path-sut /path-testvec
@@ -67,7 +68,10 @@ if __name__ == "__main__":
     td_generator.generate_test_driver(path_testvector,dir_name+"/sut.h", "./data/results_suti.csv", "./modules/test_driver/c_files/test_driver_suti.c", main_funtion.parameters, CType_parameters_sut, formatter_spec_sut)
 
     # Compile Test Driver with Instrumented SUT and Original SUT
-    compilation = subprocess.run(["make", "all", f"SRC_DIR={dir_name}"])
+    if platform.system() == "Windows":
+        compilation = subprocess.run(["mingw32-make", "all", f"SRC_DIR={dir_name}"])
+    else:
+        compilation = subprocess.run(["make", "all", f"SRC_DIR={dir_name}"])
 
     if compilation.returncode == 0:
         execution = subprocess.run(["./testdriver_sut"], capture_output=True, text=True)
