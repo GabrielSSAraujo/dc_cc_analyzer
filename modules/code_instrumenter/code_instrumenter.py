@@ -35,16 +35,19 @@ class CodeInstrumenter:
 
                 # define the instrument function
                 before_name = ""
-                if not parameter.pointer_depth:
+                if not parameter.pointer_depth or parameter.pointer_depth=="&":
                     before_name = "&"
                 inserter.set_data_to_insert(
                     func_name,
                     "recorder_record",
                     f'"{parameter.name}"',
                     before_name + parameter.name,
-                    '"'+self.type_list[parameter.type]+'"',
-                    parameter
+                    '"'+self.type_list[parameter.type]+'"',   
                 )
+
+                # define the parameter to be inserted into the code
+                inserter.set_new_coupled_parameter_to_insert(parameter) #if the old_name is defined it means that this coupling has already been defined
+
                 # visit ast and insert function
                 inserter.visit(self._ast)
               

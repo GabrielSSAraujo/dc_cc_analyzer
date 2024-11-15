@@ -87,6 +87,8 @@ class FuncDeclVisitor(c_ast.NodeVisitor):
                     params[index].name = arg.name
 
                 elif isinstance(arg, c_ast.UnaryOp):
+                    if(arg.op == "&"):
+                        params[index].pointer_depth = "&" #parametro não é ponteiro apenas referência(mas é saida)
                     if isinstance(arg.expr, c_ast.ID):
                         params[index].name = arg.expr.name
 
