@@ -1,6 +1,7 @@
 import pandas as pd
 import logging
 import decimal
+import json
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -17,10 +18,22 @@ class DataProcessor:
         self.exercised_percentage = 0.0
         self.compromised_suti = False
         self.exercised_couplings = [] # STILL NOT BEING FILLED
-        
+        self.couplings_outputs = self.load_couplings_outputs(files_dir + 'couplings_outputs.json')
+
         # Load tolerances as a dictionary
         tolerances_df = pd.read_csv(files_dir + 'tolerances.csv', index_col=0, header=None)
         self.tolerances = tolerances_df[1].to_dict()  # Column 1 contains tolerance values
+
+    def load_couplings_outputs(self, json_file_path):
+        """Load the couplings outputs JSON file and return it as a dictionary."""
+        try:
+            with open(json_file_path, 'r') as file:
+                data = json.load(file)
+            #logging.info("Couplings outputs JSON file loaded successfully.")
+            return data
+        except Exception as e:
+            logging.error(f"Error loading couplings outputs JSON file: {e}")
+            return {}
 
     def analyze(self):
         # Initialize pass/fail counters
