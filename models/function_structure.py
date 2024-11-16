@@ -10,7 +10,7 @@ class FuncStructure:
     name: str
     pointer_depth: Optional[str]
     parameters: List[Parameter] = field(default_factory=list)
-    body: Optional[Body] = Body()
+    body: Optional[Body] = field(default_factory=Body)
 
     def generate_func_signature(self) -> str:
         params = ", ".join([f"{param.type} {param.name}" for param in self.parameters])

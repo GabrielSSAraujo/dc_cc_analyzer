@@ -6,6 +6,7 @@ from typing import Optional
 class Parameter:
     type: Optional[str] = None
     name: Optional[str] = None
+    old_name: Optional[str] = None
     pointer_depth: Optional[str] = None
 
     def __eq__(self, other):

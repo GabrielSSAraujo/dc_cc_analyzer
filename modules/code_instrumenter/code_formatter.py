@@ -13,6 +13,8 @@ class CodeFormatter:
         self._sut_file_path = file_path
         self._sut_file_directory = os.path.dirname(self._sut_file_path)
         # teporary path to store sut includes
+        if not os.path.exists("./temp"):
+            os.makedirs("./temp")
         self._temp_include_path = "./temp/temp_includes.c"
         # temporary path to store preprocessed includes
         self._temp_preporcessed_include_path = "./temp/temp_preprocessed_includes.c"

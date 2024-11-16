@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../../coupling_recorder/coupling_recorder.h"
+
 // include SutFileName.h
 
 int main()
@@ -34,6 +36,11 @@ int main()
     // Escrever a primeira linha (cabeçalho)
     // HeaderPlaceholder
 
+    recorder_start("./data/couplings.csv");
+
+    // Ignore header
+    fgets(line, sizeof(line), input_file);
+
     // Ler o arquivo de entrada
     while (fgets(line, sizeof(line), input_file)) {
         // Remover o caractere de nova linha, se presente
@@ -47,7 +54,8 @@ int main()
         if (token != NULL) time_id= atof(token);
 // TokenAssignment
         
-        // SUT()
+        // sut()
+        recorder_save(time_id);
 
         //vamos escrever no arquivo de resultados
         // RESULTS.CSV
@@ -57,6 +65,7 @@ int main()
         }
     }
 
+    recorder_stop();
     fclose(input_file);
     fclose(results_file);
 

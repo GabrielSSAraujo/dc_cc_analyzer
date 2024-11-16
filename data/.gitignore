@@ -1,1 +1,2 @@
-# Pasta para armazenar arquivos csv intermediarios.
+*.csv
+*.json
