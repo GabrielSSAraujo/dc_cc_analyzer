@@ -4,8 +4,7 @@ from modules.code_instrumenter.code_formatter import CodeFormatter
 from modules.code_instrumenter.code_instrumenter import CodeInstrumenter
 from modules.data_processor.data_processor import DataProcessor
 from modules.input_validator.input_validator import InputValidator
-
-# from modules.printer.printer import Printer
+from modules.printer.printer import Printer
 from modules.test_driver.test_driver_generator import TestDriver
 from modules.data_couplings_flow.data_couplings_flow import DataCouplingFlow
 import sys
@@ -120,6 +119,5 @@ if __name__ == "__main__":
     data_processor.analyze()
 
     # TO-DO: CREATE GET FUNCTIONS TO PASS DATA TO PRINTER
-
-    # printer = Printer()
-    # printer.generate_report()
+    printer = Printer("./data/", path_testvector)
+    printer.generate_report()

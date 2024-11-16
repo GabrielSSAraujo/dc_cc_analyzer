@@ -108,7 +108,7 @@ class DataProcessor:
 
         # Calculate and log pass rate
         self.pass_rate = round((passed_tests / total_tests) * 100, 2)
-        print(f"Percentage of passed test cases: {self.pass_rate:.2f}%")
+        # print(f"Percentage of passed test cases: {self.pass_rate:.2f}%")
         self.results_data["global"]["pass_fail"] = self.pass_rate
 
         # Perform couplings analysis
@@ -140,7 +140,7 @@ class DataProcessor:
 
         # Check each coupling's values against the tolerances
         for coupling in self.couplings.columns[1:]:  # Skip the "Time" column
-            total_couplings += 1  # o total de acoplamentos pode ser extraido do couplings-data.json(soma da qtde de acoplamentos de cada saida)
+            total_couplings += 1
             coupling_exercised = False
             coupling_covered = False
             coverage_time = []
@@ -199,8 +199,8 @@ class DataProcessor:
             if total_couplings
             else 0
         )
-        print(f"Percentage of exercised couplings: {self.exercised_percentage:.2f}%")
-        print(f"Percentage of covered couplings: {self.covered_percentage:.2f}%")
+        # print(f"Percentage of exercised couplings: {self.exercised_percentage:.2f}%")
+        # print(f"Percentage of covered couplings: {self.covered_percentage:.2f}%")
         self.results_data["global"]["DC_CC_simple_coverage"] = self.exercised_percentage
         self.results_data["global"][
             "DC_CC_independent_coverage"
