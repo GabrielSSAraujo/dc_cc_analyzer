@@ -15,12 +15,10 @@ import platform
 import json
 
 if __name__ == "__main__":
-    # python3 dc_cc.py /path-sut /path-testvec
-
     # Validate inputs
-    # input_validator = InputValidator(sys.argv)
-    # if not InputValidator.validate():
-    #     exit
+    input_validator = InputValidator(sys.argv)
+    if not input_validator.validate():
+        exit(1)
 
     path_sut = sys.argv[1]
     path_testvector = sys.argv[2]
@@ -86,7 +84,6 @@ if __name__ == "__main__":
         CType_parameters_sut,
         formatter_spec_sut,
     )
-    
     # Setup Test Driver
     td_generator.test_driver_generator(
         input_path,
