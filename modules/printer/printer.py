@@ -5,7 +5,7 @@ from fpdf import FPDF, Align
 
 # Step 4 - Create class PDF
 class Printer:
-    def __init__(self, path, test_vector_path):
+    def __init__(self, path, sut_path, test_vector_path):
         # Step 1: Set path to directory
         self.path = path
         self.website = "https://github.com/GabrielSSAraujo/dc_cc_analyzer.git"
@@ -14,6 +14,8 @@ class Printer:
         self.inputs_df = pd.read_csv(self.path + "inputs.csv")
         self.outputs_df = pd.read_csv(self.path + "outputs.csv", index_col=0)
         self.coupling_df = pd.read_csv(self.path + "couplings.csv")
+        self.results_df = pd.read_csv(self.path + "results_sut.csv")
+        self.sut_path = sut_path
         self.test_vector_path = test_vector_path
         self.website = self.website
         # Step 4.1 - Create FPDF Object
@@ -46,7 +48,7 @@ class Printer:
         self.pdf.ln()
         self.pdf.cell(0, 10, f"Github location: {self.website}", link=self.website)
         self.pdf.ln()
-        self.pdf.cell(0, 10, f"Project: Software Under Test")
+        self.pdf.cell(0, 10, f"Project: {self.sut_path}")
         self.pdf.ln()
         self.pdf.cell(0, 10, f"Test Vector: {self.test_vector_path}")
         self.pdf.ln()
@@ -102,11 +104,16 @@ class Printer:
         self.pdf.ln()
 
         # Third section - COUPLING VALUES
+        # Ouputs
+        for output in self.results_df.columns[1:]:
+            self.coupling_df[str(output)] = self.results_df[str(output)]
+
         pass_fail_list = []
         for time in self.json_df["pass_fail"]:
             pass_fail_list.append(self.json_df["pass_fail"][str(time)])
         self.coupling_df["Pass/Fail"] = pass_fail_list
 
+        # Calculate columns width
         num_columns = len(self.coupling_df.columns)
         col_width = (self.pdf.w - 2 * self.pdf.l_margin) / num_columns
 
@@ -127,13 +134,15 @@ class Printer:
             self.pdf.ln()
 
         # Fourth section (Coupling graph)
+        w = 200
+        y = (self.pdf.h - w ) / 2
         self.pdf.add_page()
         self.pdf.image(
-            "data/data_couplings_flow/dc_graph.png", x=Align.C, y=40, w=150
+            "data/data_couplings_flow/dc_graph.png", x=Align.C, y=y, w=w
         )  # Adjust x, y, and w as needed
         self.pdf.ln()  # Move cursor below the image
         self.pdf.set_font("helvetica", "", 12)
-        self.pdf.cell(0, 10, "Figura: Coupling Graph", 0, 1, "C")  # Centered caption
+        self.pdf.cell(0, 24, "Figura: Coupling Graph", 0, 1, "C")  # Centered caption
 
         # Close document
         self.pdf.output("report.pdf")

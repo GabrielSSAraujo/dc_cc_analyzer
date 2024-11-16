@@ -142,7 +142,6 @@ class DataProcessor:
         for coupling in self.couplings.columns[1:]:  # Skip the "Time" column
             total_couplings += 1
             coupling_exercised = False
-            coupling_covered = False
             coverage_time = []
 
             # Iterate through values in the coupling column
@@ -176,13 +175,12 @@ class DataProcessor:
                             )
                         ]
                         # If only one related coupling has changed, mark it as 'covered'
-                        if len(changed_couplings) == 1 and (coupling in changed_couplings):
-                            coupling_covered = True
+                        if len(changed_couplings) == 1 and (coupling in changed_couplings) and not self.results_data["couplings"][coupling]["related_outputs"][output_column]["covered"]:
                             covered_couplings += 1
                             previous_time = str(self.actual_results.at[index - 1, "Time"])
                             time_of_coverage = str(self.actual_results.at[index, "Time"])
                             coverage_time = [previous_time, time_of_coverage]
-                            self.results_data["couplings"][coupling]["related_outputs"][output_column]["covered"] = coupling_covered
+                            self.results_data["couplings"][coupling]["related_outputs"][output_column]["covered"] = True
                             self.results_data["couplings"][coupling]["related_outputs"][output_column]["time_of_coverage"] = coverage_time
                             break  # No need to check further outputs for this coupling
 

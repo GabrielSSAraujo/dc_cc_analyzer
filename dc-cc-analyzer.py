@@ -15,7 +15,10 @@ import platform
 import json
 
 if __name__ == "__main__":
+    
     # Validate inputs
+    print(">> Validating inputs...")
+
     input_validator = InputValidator(sys.argv)
     if not input_validator.validate():
         exit(1)
@@ -25,6 +28,7 @@ if __name__ == "__main__":
     dir_name = os.path.dirname(path_sut)
 
     # Get coupling data from SUT
+    print(">> Identifying couplings...")
     static_analyzer = StaticAnalyzer()
     ast = static_analyzer.get_ast(path_sut)
     coupled_data = static_analyzer.get_coupled_data(ast)
@@ -34,6 +38,7 @@ if __name__ == "__main__":
     typedef_to_primitive_type = types.get_types_from_ast(ast)
 
     # # Generate preprocessed Instrumented SUT from AST
+    print(">> Generating instrumented code...")
     code_instrumenter = CodeInstrumenter()
     preprocessed_code = code_instrumenter.instrument_code(
         ast, coupled_data, "sut", typedef_to_primitive_type
@@ -71,10 +76,12 @@ if __name__ == "__main__":
         CType_parameters_sut.append(param)
         formatter_spec_sut[param.type] = format
 
-    # data extractor
+    # Data extractor
     data_extractor = DataExtractor(path_testvector)
     input_path = data_extractor.extract_data(main_funtion.parameters)
-    # test driver generator sut
+    
+    # Test driver generator sut]
+    print(">> Generating test drivers...")
     td_generator = TestDriver()
     td_generator.test_driver_generator(
         input_path,
@@ -95,14 +102,18 @@ if __name__ == "__main__":
     )
 
     # Compile Test Driver with Instrumented SUT and Original SUT
+    print(">> Compiling codes...")
     if platform.system() == "Windows":
-        compilation = subprocess.run(["mingw32-make", "all", f"SRC_DIR={dir_name}"])
+        compilation = subprocess.run(["mingw32-make", "all", f"SRC_DIR={dir_name}"], stdout=subprocess.DEVNULL)
     else:
-        compilation = subprocess.run(["make", "all", f"SRC_DIR={dir_name}"])
+        compilation = subprocess.run(["make", "all", f"SRC_DIR={dir_name}"], stdout=subprocess.DEVNULL)
 
+
+    # Execute Test Driver with SUT
+    print(">> Executing test drivers...")
     if compilation.returncode == 0:
         execution = subprocess.run(["./testdriver_sut"], capture_output=True, text=True)
-        print(execution.stdout)
+        # print(execution.stdout)
 
     # Execute Test Driver with Instrumented SUT
     if compilation.returncode == 0:
@@ -110,12 +121,19 @@ if __name__ == "__main__":
         execution = subprocess.run(
             ["./testdriver_suti"], capture_output=True, text=True
         )
-        print(execution.stdout)  # debug
+        # print(execution.stdout)  # debug
 
     # Analyze data produced by test driver execution
+    print(">> Processing data...")
     data_processor = DataProcessor("./data/")
     data_processor.analyze()
 
     # TO-DO: CREATE GET FUNCTIONS TO PASS DATA TO PRINTER
-    printer = Printer("./data/", path_testvector)
+    print(">> Generating report...")
+    testvector_abs_path = os.path.abspath(path_testvector)
+    sut_abs_path = os.path.abspath(path_sut)
+    printer = Printer("./data/", sut_abs_path, testvector_abs_path)
     printer.generate_report()
+
+    print(">> DONE!")
+    print(f">> Check the report.pdf file in {os.path.dirname(os.path.abspath(__file__))}/ directory.")
