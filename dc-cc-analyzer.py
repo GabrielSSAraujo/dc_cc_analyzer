@@ -116,8 +116,8 @@ if __name__ == "__main__":
         print(execution.stdout)  # debug
 
     # Analyze data produced by test driver execution
-    # data_processor = DataProcessor("./data/")
-    # data_processor.analyze()
+    data_processor = DataProcessor("./data/")
+    data_processor.analyze()
 
     # TO-DO: CREATE GET FUNCTIONS TO PASS DATA TO PRINTER
 

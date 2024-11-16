@@ -62,7 +62,7 @@ void recorder_save(float time) {
 
     // Check if header of csv was written
     if (!_header_written) {
-        fprintf(_file, "Time, ");
+        fprintf(_file, "Time,");
 
         // Write csv header
         for (int i = 0; i < _list->size; i++) {
@@ -70,7 +70,7 @@ void recorder_save(float time) {
 
             // Write separator
             if (i < _list->size - 1) {
-                fprintf(_file, ", ");
+                fprintf(_file, ",");
             } else {
                 fprintf(_file, "\n");
             }
@@ -87,7 +87,7 @@ void recorder_save(float time) {
 
         // Write separator
         if (i < _list->size - 1) {
-            fprintf(_file, ", ");
+            fprintf(_file, ",");
         } else {
             fprintf(_file, "\n");
         }
