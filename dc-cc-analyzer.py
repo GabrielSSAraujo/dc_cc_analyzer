@@ -4,6 +4,7 @@ from modules.code_instrumenter.code_formatter import CodeFormatter
 from modules.code_instrumenter.code_instrumenter import CodeInstrumenter
 from modules.data_processor.data_processor import DataProcessor
 from modules.input_validator.input_validator import InputValidator
+from modules.test_driver.data_extractor import DataExtractor
 from modules.printer.printer import Printer
 from modules.test_driver.test_driver_generator import TestDriver
 from modules.data_couplings_flow.data_couplings_flow import DataCouplingFlow
