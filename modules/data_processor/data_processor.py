@@ -9,6 +9,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 class DataProcessor:
     def __init__(self, files_dir):
         # Load CSV files
+        self.files_dir = files_dir
         self.inputs = pd.read_csv(files_dir + 'inputs.csv')
         self.expected_outputs = pd.read_csv(files_dir + 'outputs.csv')
         self.actual_results = pd.read_csv(files_dir + 'results_sut.csv')
@@ -17,7 +18,7 @@ class DataProcessor:
         self.pass_rate = 0.0
         self.exercised_percentage = 0.0
         self.compromised_suti = False
-        self.exercised_couplings = []  # To track exercised couplings
+        self.results_data = {"global": {}, "couplings": {}, "pass_fail": {}}
         self.couplings_outputs = self.load_couplings_outputs(files_dir + 'couplings_outputs.json')
 
         # Load tolerances as a dictionary
@@ -60,9 +61,6 @@ class DataProcessor:
         for index, row in self.expected_outputs.iterrows():
             total_tests += 1
             pass_case = True
-
-            if index == 0:
-                continue
             for column in row.index:
                 if column != "Time":
                     expected_value = row[column]
@@ -88,6 +86,9 @@ class DataProcessor:
                         )
                         self.compromised_suti = True
 
+
+            time = str(self.actual_results.at[index, "Time"])
+            self.results_data["pass_fail"][time] = pass_case
             # Count passes/fails
             if pass_case:
                 passed_tests += 1
@@ -95,6 +96,7 @@ class DataProcessor:
         # Calculate and log pass rate
         self.pass_rate = (passed_tests / total_tests) * 100
         print(f"Percentage of passed test cases: {self.pass_rate:.2f}%")
+        self.results_data["global"]["pass_fail"] = self.pass_rate
 
         # Perform couplings analysis
         self.analyze_couplings()
@@ -108,7 +110,9 @@ class DataProcessor:
         for coupling in self.couplings.columns[1:]:  # Skip the "Time" column
             total_couplings += 1
             coupling_exercised = False
+            coupling_covered = False
             coupling_analyzed = False
+            coverage_time = []
 
             # Iterate through values in the coupling column
             for index in range(1, len(self.couplings)):
@@ -136,17 +140,32 @@ class DataProcessor:
                             rel_coupling for rel_coupling in related_couplings
                             if self.check_variation(index, rel_coupling, self.couplings, float(self.tolerances.get(rel_coupling, 0)))
                         ]
-
                         # If only one related coupling has changed, mark it as 'covered'
                         if len(changed_couplings) == 1 and (coupling in changed_couplings):
+                            coupling_covered = True
                             covered_couplings += 1
                             coupling_analyzed = True
+                            previous_time = str(self.actual_results.at[index - 1, "Time"])
+                            time_of_coverage = str(self.actual_results.at[index, "Time"])
+                            coverage_time = [previous_time, time_of_coverage]
                             break  # No need to check further outputs for this coupling
+        
+            self.results_data["couplings"][coupling] = {}
+            self.results_data["couplings"][coupling]["exercised"] = coupling_exercised
+            self.results_data["couplings"][coupling]["covered"] = coupling_covered
+            self.results_data["couplings"][coupling]["time_of_coverage"] = coverage_time
+        
         # Calculate and print the percentage of exercised and covered couplings
         self.exercised_percentage = (exercised_couplings / total_couplings) * 100 if total_couplings else 0
         self.covered_percentage = (covered_couplings / total_couplings) * 100 if total_couplings else 0
         print(f"Percentage of exercised couplings: {self.exercised_percentage:.2f}%")
         print(f"Percentage of covered couplings: {self.covered_percentage:.2f}%")
+        self.results_data["global"]["DC_CC_simple_coverage"] = self.exercised_percentage
+        self.results_data["global"]["DC_CC_independent_coverage"] = self.covered_percentage
+
+        # Writing results_data to a JSON file
+        with open(self.files_dir + 'results_data.json', 'w') as json_file:
+            json.dump(self.results_data, json_file, indent=4)
 
 
 def round_to_match_decimals(number, reference):
