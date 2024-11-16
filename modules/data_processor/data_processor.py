@@ -140,7 +140,7 @@ class DataProcessor:
 
         # Check each coupling's values against the tolerances
         for coupling in self.couplings.columns[1:]:  # Skip the "Time" column
-            total_couplings += 1  # o total de acoplamentos pode ser extraido do couplings-data.json(soma da qtde de acoplamentos de cada saida)
+            total_couplings += 1
             coupling_exercised = False
             coupling_covered = False
             coverage_time = []
