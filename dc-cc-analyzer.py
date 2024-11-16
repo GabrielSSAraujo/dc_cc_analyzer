@@ -4,6 +4,7 @@ from modules.code_instrumenter.code_formatter import CodeFormatter
 from modules.code_instrumenter.code_instrumenter import CodeInstrumenter
 from modules.data_processor.data_processor import DataProcessor
 from modules.input_validator.input_validator import InputValidator
+from modules.test_driver.data_extractor import DataExtractor
 from modules.printer.printer import Printer
 from modules.test_driver.test_driver_generator import TestDriver
 from modules.data_couplings_flow.data_couplings_flow import DataCouplingFlow
@@ -72,26 +73,26 @@ if __name__ == "__main__":
         CType_parameters_sut.append(param)
         formatter_spec_sut[param.type] = format
 
-    # static_analyzer.
+    # data extractor
+    data_extractor = DataExtractor(path_testvector)
+    input_path = data_extractor.extract_data(main_funtion.parameters)
+    # test driver generator sut
     td_generator = TestDriver()
-    td_generator.generate_test_driver(
-        path_testvector,
+    td_generator.test_driver_generator(
+        input_path,
         dir_name + "/sut.h",
         "./data/results_sut.csv",
         "./modules/test_driver/c_files/test_driver_sut.c",
-        main_funtion.parameters,
         CType_parameters_sut,
         formatter_spec_sut,
     )
-
+    
     # Setup Test Driver
-    td_generator = TestDriver()
-    td_generator.generate_test_driver(
-        path_testvector,
+    td_generator.test_driver_generator(
+        input_path,
         dir_name + "/sut.h",
         "./data/results_suti.csv",
         "./modules/test_driver/c_files/test_driver_suti.c",
-        main_funtion.parameters,
         CType_parameters_sut,
         formatter_spec_sut,
     )
