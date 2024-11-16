@@ -94,7 +94,7 @@ class DataProcessor:
                 passed_tests += 1
 
         # Calculate and log pass rate
-        self.pass_rate = (passed_tests / total_tests) * 100
+        self.pass_rate = round((passed_tests / total_tests) * 100, 2)
         print(f"Percentage of passed test cases: {self.pass_rate:.2f}%")
         self.results_data["global"]["pass_fail"] = self.pass_rate
 
@@ -156,8 +156,8 @@ class DataProcessor:
             self.results_data["couplings"][coupling]["time_of_coverage"] = coverage_time
         
         # Calculate and print the percentage of exercised and covered couplings
-        self.exercised_percentage = (exercised_couplings / total_couplings) * 100 if total_couplings else 0
-        self.covered_percentage = (covered_couplings / total_couplings) * 100 if total_couplings else 0
+        self.exercised_percentage = round((exercised_couplings / total_couplings) * 100, 2) if total_couplings else 0
+        self.covered_percentage = round((covered_couplings / total_couplings) * 100, 2) if total_couplings else 0
         print(f"Percentage of exercised couplings: {self.exercised_percentage:.2f}%")
         print(f"Percentage of covered couplings: {self.covered_percentage:.2f}%")
         self.results_data["global"]["DC_CC_simple_coverage"] = self.exercised_percentage
