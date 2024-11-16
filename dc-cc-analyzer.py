@@ -72,26 +72,26 @@ if __name__ == "__main__":
         CType_parameters_sut.append(param)
         formatter_spec_sut[param.type] = format
 
-    # static_analyzer.
+    # data extractor
+    data_extractor = DataExtractor(path_testvector)
+    input_path = data_extractor.extract_data(main_funtion.parameters)
+    # test driver generator sut
     td_generator = TestDriver()
-    td_generator.generate_test_driver(
-        path_testvector,
+    td_generator.test_driver_generator(
+        input_path,
         dir_name + "/sut.h",
         "./data/results_sut.csv",
         "./modules/test_driver/c_files/test_driver_sut.c",
-        main_funtion.parameters,
         CType_parameters_sut,
         formatter_spec_sut,
     )
-
+    
     # Setup Test Driver
-    td_generator = TestDriver()
-    td_generator.generate_test_driver(
-        path_testvector,
+    td_generator.test_driver_generator(
+        input_path,
         dir_name + "/sut.h",
         "./data/results_suti.csv",
         "./modules/test_driver/c_files/test_driver_suti.c",
-        main_funtion.parameters,
         CType_parameters_sut,
         formatter_spec_sut,
     )
