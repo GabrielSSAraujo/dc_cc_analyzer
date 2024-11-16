@@ -120,17 +120,29 @@ class DataProcessor:
             size += len(coupling)
         return size
 
+    def init_couplings_fields_in_results_data(self):
+        couplings = self.couplings.columns[1:]
+        for coupling in couplings:
+            self.results_data["couplings"][coupling] = {}
+            self.results_data["couplings"][coupling]["related_outputs"] = {}
+            for output in self.couplings_outputs:
+                couplings_related_to_output = self.couplings_outputs[output]
+                if coupling in couplings_related_to_output:
+                    self.results_data["couplings"][coupling]["related_outputs"][output] = {}
+                    self.results_data["couplings"][coupling]["related_outputs"][output]["covered"] = False
+                    self.results_data["couplings"][coupling]["related_outputs"][output]["time_of_coverage"] = []
+        
     def analyze_couplings(self):
         total_couplings = 0
         exercised_couplings = 0
         covered_couplings = 0
+        self.init_couplings_fields_in_results_data()
 
         # Check each coupling's values against the tolerances
         for coupling in self.couplings.columns[1:]:  # Skip the "Time" column
             total_couplings += 1  # o total de acoplamentos pode ser extraido do couplings-data.json(soma da qtde de acoplamentos de cada saida)
             coupling_exercised = False
             coupling_covered = False
-            coupling_analyzed = False
             coverage_time = []
 
             # Iterate through values in the coupling column
@@ -144,20 +156,14 @@ class DataProcessor:
 
             # Check if the coupling is responsible for covering a change in the output
             for index in range(1, len(self.actual_results)):
-                if coupling_analyzed:
-                    break
                 for output_column in self.actual_results.columns:
                     if output_column == "Time":
                         continue
 
                     # Check if the output has changed compared to its previous value
                     output_tolerance = float(self.tolerances.get(output_column, 0))
-                    if self.check_variation(
-                        index, output_column, self.actual_results, output_tolerance
-                    ):
-                        related_couplings = self.couplings_outputs.get(
-                            output_column, []
-                        )
+                    if self.check_variation(index, output_column, self.actual_results, output_tolerance):
+                        related_couplings = self.couplings_outputs.get(output_column, [])
                         # Count how many related couplings have changed at this index
                         changed_couplings = [
                             rel_coupling
@@ -170,25 +176,17 @@ class DataProcessor:
                             )
                         ]
                         # If only one related coupling has changed, mark it as 'covered'
-                        if len(changed_couplings) == 1 and (
-                            coupling in changed_couplings
-                        ):
+                        if len(changed_couplings) == 1 and (coupling in changed_couplings):
                             coupling_covered = True
                             covered_couplings += 1
-                            coupling_analyzed = True
-                            previous_time = str(
-                                self.actual_results.at[index - 1, "Time"]
-                            )
-                            time_of_coverage = str(
-                                self.actual_results.at[index, "Time"]
-                            )
+                            previous_time = str(self.actual_results.at[index - 1, "Time"])
+                            time_of_coverage = str(self.actual_results.at[index, "Time"])
                             coverage_time = [previous_time, time_of_coverage]
+                            self.results_data["couplings"][coupling]["related_outputs"][output_column]["covered"] = coupling_covered
+                            self.results_data["couplings"][coupling]["related_outputs"][output_column]["time_of_coverage"] = coverage_time
                             break  # No need to check further outputs for this coupling
 
-            self.results_data["couplings"][coupling] = {}
             self.results_data["couplings"][coupling]["exercised"] = coupling_exercised
-            self.results_data["couplings"][coupling]["covered"] = coupling_covered
-            self.results_data["couplings"][coupling]["time_of_coverage"] = coverage_time
 
         # Calculate and print the percentage of exercised and covered couplings
         self.exercised_percentage = (
