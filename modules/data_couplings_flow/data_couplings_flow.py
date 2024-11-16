@@ -18,7 +18,7 @@ class DataCouplingFlow:
         return value
 
     # Performs a recursive analysis starting from the output to identify which couplings influence its result.
-    def find_coupling_to_output(self, output, comp_name):  # b, f4
+    def find_coupling_to_output(self, output, comp_name):
         # find index of current function
         if comp_name in self.calls:
             start_index = self.calls.index(comp_name) - 1
@@ -30,16 +30,21 @@ class DataCouplingFlow:
                 for coup in self.couplings:
                     if coup.function_b == call:
                         for param in coup.parameters:
-                            self.graph.add_edge(param.name, output.name)
-                            self.find_coupling_to_output(param, call)
+                            if param.name != output.name:
+                                self.graph.add_edge(param.name, output.name)
+                                self.find_coupling_to_output(param, call)
                 break
             for param in self.functions[call].parameters:
-                if self.remove_aux_suffix(param.name) == output.name:
+                if (
+                    self.remove_aux_suffix(param.name) == output.name
+                ) and param.pointer_depth:
+
                     for coup in self.couplings:
                         if coup.function_b == call:
                             for param in coup.parameters:
-                                self.graph.add_edge(param.name, output.name)
-                                self.find_coupling_to_output(param, call)
+                                if param.name != output.name:
+                                    self.graph.add_edge(param.name, output.name)
+                                    self.find_coupling_to_output(param, call)
                     break
 
     def analyze_data_flow(self):
@@ -71,7 +76,10 @@ class DataCouplingFlow:
             outs = []
             for coup in self.couplings:
                 for param in coup.parameters:
-                    if nx.has_path(self.graph, param.name, out.name):
+                    if (
+                        nx.has_path(self.graph, param.name, out.name)
+                        and param.name != out.name
+                    ):
                         outs.append(param.name)
             self.coupling_output_mapping[out.name] = outs
 
