@@ -25,32 +25,39 @@ class CodeInstrumenter:
         # stores the parameters name
         recorder_param = []
 
+        inserted_params = []
+
         # for each coupled function get which parameter is coupled and instrument the funtion
         for coupled_data in self._coupled_data:
             func_name = coupled_data.function_b
             for parameter in coupled_data.parameters:
-                
+                if parameter.name in inserted_params:
+                    continue
                 # fill parameters list
                 recorder_param.append(parameter.name)
 
                 # define the instrument function
                 before_name = ""
-                if not parameter.pointer_depth or parameter.pointer_depth=="&":
+                if not parameter.pointer_depth or parameter.pointer_depth == "&":
                     before_name = "&"
                 inserter.set_data_to_insert(
                     func_name,
                     "recorder_record",
                     f'"{parameter.name}"',
                     before_name + parameter.name,
-                    '"'+self.type_list[parameter.type]+'"',   
+                    '"' + self.type_list[parameter.type] + '"',
                 )
 
                 # define the parameter to be inserted into the code
-                inserter.set_new_coupled_parameter_to_insert(parameter) #if the old_name is defined it means that this coupling has already been defined
+                inserter.set_new_coupled_parameter_to_insert(
+                    parameter
+                )  # if the old_name is defined it means that this coupling has already been defined
 
                 # visit ast and insert function
                 inserter.visit(self._ast)
-              
+
+                inserted_params.append(parameter.name)
+
         # initializing coupling list in recorder module
         inserter.set_data_to_insert(
             main_func,

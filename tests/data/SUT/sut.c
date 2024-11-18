@@ -1,4 +1,4 @@
-#include "SUT.h"
+#include "sut.h"
 
 void compA(int suti0, int suti1, int suti2, int *AO1, int *AO2)
 {
@@ -24,8 +24,10 @@ void compE(int *teste)
     *teste += 10;
 }
 
-void SUT(int suti0, int suti1, int suti2, int suti3, int suti4, int suti5, int suti6, int *suto1, int *suto2, int *suto3, int *suto4, int *suto5, int *suto6)
+void sut(int suti0, int suti1, int suti2, int suti3, int suti4, int suti5, int suti6, int *suto1, int *suto2, int *suto3, int *suto4, int *suto5, int *suto6)
 {
+    int teste;
+    int *teste2;
     //int AO1, AO2, BO1, CO1;
     compA(suti0, suti1, suti2, suto1, suto2);
     compB(suti3, suti4, suti5, suti6, suto3);
