@@ -206,16 +206,14 @@ class FunctionAnalyzer:
         coupling_data = []
         for output_name in outputs_couplings:
             last_state = StateOnDest.R
-            i = 0
             parameter = Parameter()
             parameter.name = output_name
 
             for state in outputs_couplings[output_name]:
                 if last_state == StateOnDest.M:
-                    i += 1
                     name = parameter.name
                     parameter = Parameter()
-                    parameter.name = name + "_aux" * i
+                    parameter.name = name + "_aux"
                     parameter.old_name = name
 
                 for var_decl in variable_decl:
