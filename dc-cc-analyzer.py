@@ -110,7 +110,7 @@ if __name__ == "__main__":
     if platform.system() == "Windows":
         compilation = subprocess.run(["mingw32-make", "all", f"SRC_DIR={dir_name}", f'SRC_TEST_DRIVER=modules/test_driver/c_files'], stdout=subprocess.DEVNULL)
     else:
-        compilation = subprocess.run(["make", "all", f"SRC_DIR={dir_name}"], stdout=subprocess.DEVNULL)
+        compilation = subprocess.run(["make", "all", f"SRC_DIR={dir_name}", f'SRC_TEST_DRIVER=modules/test_driver/c_files' ], stdout=subprocess.DEVNULL)
 
 
     # Execute Test Driver with SUT
