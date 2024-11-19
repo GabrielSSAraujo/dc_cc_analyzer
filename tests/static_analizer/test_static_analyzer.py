@@ -47,12 +47,12 @@ class TestStaticAnalyzer(unittest.TestCase):
         ast = self.static_analyzer.get_ast(data_path + "/SUT_nested_params/sut.c")
 
         coupled_param_list = [
-            Parameter("int", "suto1"),  # compA - compC/D  :SUTO1
-            Parameter("double", "suto2"),  # compA - compE: SUTO2
-            Parameter("float", "suto3"),  # compB - compC: SUTO3
-            Parameter("double", "suto2_aux"),  # compE - compC: SUT2_aux
-            Parameter("double", "suto2_aux_aux"),  # compC - compD: SUTO2_aux_aux
-            Parameter("double", "suto6"),  # compC - compD: SUTO6
+            Parameter("int", "a1"),  # compA - compC/D
+            Parameter("double", "a2"),  # compA - compE
+            Parameter("float", "a3"),  # compB - compC
+            Parameter("double", "a2_aux"),  # compE - compD
+            Parameter("int", "suto1"),  # compE - compD
+            Parameter("char", "a4"),  # compC - compD
         ]
 
         coupled_data = self.static_analyzer.get_coupled_data(ast)
