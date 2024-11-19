@@ -2,9 +2,6 @@
  @file: test_driver_generator.py
  @brief [Descrição breve do arquivo]
 
- @date: 2024-11-12 17:29
- @author: Aline Andreotti Urna
- @e-mail: aline.urna@gmail.com
 """
 
 from modules.test_driver.data_extractor import DataExtractor

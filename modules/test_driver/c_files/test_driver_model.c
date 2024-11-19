@@ -1,18 +1,12 @@
 /**
  * @file: test_driver_model.c
  * @brief [Teste Driver para o SUT]
- * @details [limitações conhecidas: Não ha garantias da existencia do SUT.h e SUT.c (premissa?)]
- * @version: 0.1
- * @date: 2024-11-12 17:22
- * @autor: Aline Andreotti Urna
- * @e-mail: aline.urna@gmail.com
- * @githubLink: https://github.com/aliandreur
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../../coupling_recorder/coupling_recorder.h"
+#include "../../../modules/coupling_recorder/coupling_recorder.h"
 
 // include SutFileName.h
 
