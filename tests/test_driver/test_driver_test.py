@@ -14,9 +14,9 @@
 """
 
 import unittest
-from unittest.mock import patch
 import subprocess
 import os
+import platform
 
 from modules.test_driver.data_extractor import DataExtractor
 from modules.test_driver.test_driver_generator import TestDriver
@@ -46,53 +46,73 @@ class TestTestDriverGenerator(unittest.TestCase):
         data_extractor = DataExtractor("./tests/data/test_vectors/TestVec_VCP-500-VC-01.csv")
         self.input_path = data_extractor.extract_data(self.CType_parameters)
     
-    def compile_and_run(self, original_file_path, executable_path):
-        include_dirs = "-I ./modules/coupling_recorder -I ./tests/test_driver/SUT -I ./modules/list"
-        compile_command = f"gcc {include_dirs} ./modules/coupling_recorder/coupling_recorder.c ./modules/coupling_recorder/list.c {original_file_path} -o {executable_path}"
-        
-        try:
-            subprocess.run(compile_command, shell=True, check=True, capture_output=True, text=True)
-        except subprocess.CalledProcessError as e:
-            self.fail(f"Compilation failed: {e.stderr}")
-        
-        result = subprocess.run(executable_path, shell=True, capture_output=True, text=True)
-        self.assertEqual(result.returncode, 0, f"Execution failed with return code {result.returncode}")
 
-    def test_test_driver_sut(self):
-        result_file_path = "./tests/test_driver/results_sut.csv"
-        original_file_path = "./tests/test_driver/test_driver_sut.c"
-        executable_path = ".\\tests\\test_driver\\test_driver_sut"
-        
+    def test_generating_testDriver_c_files(self):
+        # Generate test_driver_sut.c
+        self.original_file_path_sut = "./tests/test_driver/c_files/test_driver_sut.c"
+        self.result_file_path_sut = "./tests/test_driver/results_sut.csv"
         self.test_driver.test_driver_generator(
             self.input_path,
             self.path_sut,
-            result_file_path,
-            original_file_path,
+            self.result_file_path_sut,
+            self.original_file_path_sut,
             self.CType_parameters,
             self.formatter_spec
         )
-        
-        self.assertTrue(os.path.exists(original_file_path), f'{original_file_path} was not created')
-        self.compile_and_run(original_file_path, executable_path)
-        self.assertTrue(os.path.exists(result_file_path), f'{result_file_path} was not created')
+        #test if exists
+        self.assertTrue(os.path.exists(self.original_file_path_sut), f'{self.original_file_path_sut} was not created')
 
-    def test_test_driver_suti(self):
-        result_file_path = "./tests/test_driver/results_suti.csv"
-        original_file_path = "./tests/test_driver/test_driver_suti.c"
-        executable_path = ".\\tests\\test_driver\\test_driver_suti"
-        
+        # Generate test_driver_suti.c
+        self.original_file_path_suti = "./tests/test_driver/c_files/test_driver_suti.c"
+        self.result_file_path_suti = "./tests/test_driver/results_suti.csv"
         self.test_driver.test_driver_generator(
             self.input_path,
             self.path_sut,
-            result_file_path,
-            original_file_path,
+            self.result_file_path_suti,
+            self.original_file_path_suti,
             self.CType_parameters,
             self.formatter_spec
         )
+        # test if exists
+        self.assertTrue(os.path.exists(self.original_file_path_suti), f'{self.original_file_path_suti} was not created')
+            
+    
+    def compile_and_run(self, executable_path):        
+        if platform.system() == "Windows":
+            compilation = subprocess.run(["mingw32-make", "all", f"SRC_DIR=tests/test_driver", f'SRC_TEST_DRIVER=tests/test_driver/c_files'], stdout=subprocess.DEVNULL)
+        else:
+            compilation = subprocess.run(["make", "all", f"SRC_DIR=tests/test_driver", f'SRC_TEST_DRIVER=tests/test_driver/c_files'], stdout=subprocess.DEVNULL)   
         
-        self.assertTrue(os.path.exists(original_file_path), f'{original_file_path} was not created')
-        self.compile_and_run(original_file_path, executable_path)
-        self.assertTrue(os.path.exists(result_file_path), f'{result_file_path} was not created')
+        #test if compilation was successful
+        self.assertEqual(compilation.returncode, 0, f"Compilation failed with return code {compilation.returncode}")
+        
+        execution = subprocess.run([f'{executable_path}'], capture_output=True, text=True)        
+        
+        #test if execution was successful            
+        self.assertEqual(execution.returncode, 0, f"Execution failed with return code {execution.returncode}")
+        
+       
+        
+    def verify_csv_files(self, result_file_path):
+        # test if result file was created
+        self.assertTrue(os.path.exists(result_file_path), f'{result_file_path} was not created') 
 
-if __name__ == "__main__":
-    unittest.main()
+    def test_driver_suite(self):
+        #tests suite
+        self.test_generating_testDriver_c_files()
+        self.compile_and_run("./testdriver_sut")
+        self.compile_and_run("./testdriver_suti")
+        self.verify_csv_files(self.result_file_path_sut)
+        self.verify_csv_files(self.result_file_path_suti)
+        
+def suite():
+    suite = unittest.TestSuite()
+    suite.addTest(TestTestDriverGenerator('test_driver_suite'))
+    return suite
+
+if __name__ == '__main__':
+    runner = unittest.TextTestRunner()
+    runner.run(suite())
+
+
+    
