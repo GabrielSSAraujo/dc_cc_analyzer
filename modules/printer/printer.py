@@ -44,9 +44,9 @@ class Printer:
         self.pdf.ln(10)
         self.pdf.cell(0, 10, f"DC/CC Coverage: {self.dc_coverage}%")
         self.pdf.ln(10)
-        
+
         # Set auto page break
-        self.pdf.set_auto_page_break(auto = True, margin = 15)
+        self.pdf.set_auto_page_break(auto=True, margin=15)
 
         # Second section - Functions DC/CC report
         self.pdf.set_font("Times", "B", 14)
