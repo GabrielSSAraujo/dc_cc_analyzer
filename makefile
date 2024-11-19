@@ -10,12 +10,12 @@ CFLAGS=
 SRC=$(wildcard $(SRC_DIR)/*.c) # All .c files in the SRC_DIR directory must be in the root
 SRC+=modules/coupling_recorder/coupling_recorder.c
 SRC+=modules/coupling_recorder/list.c
-SRC+=modules/test_driver/c_files/test_driver_sut.c
-SRC+=modules/test_driver/c_files/test_driver_suti.c
+SRC+=$(SRC_TEST_DRIVER)/test_driver_sut.c
+SRC+=$(SRC_TEST_DRIVER)/test_driver_suti.c
 
 OBJ=$(SRC:.c=.o)
-OBJ_SUT=$(filter-out $(SRC_DIR)/suti.o modules/test_driver/c_files/test_driver_suti.o,$(OBJ))
-OBJ_SUTI=$(filter-out $(SRC_DIR)/sut.o modules/test_driver/c_files/test_driver_sut.o,$(OBJ))
+OBJ_SUT=$(filter-out $(SRC_DIR)/suti.o $(SRC_TEST_DRIVER)/test_driver_suti.o,$(OBJ))
+OBJ_SUTI=$(filter-out $(SRC_DIR)/sut.o $(SRC_TEST_DRIVER)/test_driver_sut.o,$(OBJ))
 OBJ_DIR=objects
 
 # Default rule

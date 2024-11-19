@@ -3,3 +3,4 @@
 __pycache__/
 test_driver_suti.c
 test_driver_sut.c
+*.o
