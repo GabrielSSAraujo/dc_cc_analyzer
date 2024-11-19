@@ -1,8 +1,7 @@
 import unittest
-from unittest.mock import patch
 import os
 import sys
-import io
+
 
 # Encontra o diretório raiz do projeto (dois níveis acima do arquivo atual)
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
