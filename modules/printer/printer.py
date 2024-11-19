@@ -58,9 +58,9 @@ class Printer:
         self.pdf.ln(10)
         self.pdf.cell(0, 10, f"DC/CC Independent Coverage: {dc_cc_coverage2}%")
         self.pdf.ln(10)
-        
+
         # Set auto page break
-        self.pdf.set_auto_page_break(auto = True, margin = 15)
+        self.pdf.set_auto_page_break(auto=True, margin=15)
 
         # Second section - COUPLING STATUS
         couplings_list = self.json_df["couplings"]
@@ -71,15 +71,20 @@ class Printer:
         formatted_data_frame = pd.DataFrame(columns=cols)
         i = 0
         for coupling in couplings_list:
-            new_row = {"Acoplamento": str(coupling), "Exercitado": str(couplings_list[str(coupling)]["exercised"])}
+            new_row = {
+                "Acoplamento": str(coupling),
+                "Exercitado": str(couplings_list[str(coupling)]["exercised"]),
+            }
             for col in formatted_data_frame.columns[2:]:
                 related_outputs = couplings_list[str(coupling)]["related_outputs"]
-                new_row[col] = "NR" # Não relacionado
+                new_row[col] = "NR"  # Não relacionado
                 if col in related_outputs:
                     if related_outputs[col]["covered"]:
-                        new_row[col] = "C em " + str(related_outputs[col]["time_of_coverage"])
+                        new_row[col] = "C em " + str(
+                            related_outputs[col]["time_of_coverage"]
+                        )
                     else:
-                        new_row[col] = "NC" # Não coberto
+                        new_row[col] = "NC"  # Não coberto
             formatted_data_frame.loc[i] = new_row
             i += 1
 
@@ -100,7 +105,11 @@ class Printer:
             self.pdf.ln()
 
         # Legend
-        self.pdf.cell(0, 8, f"Legenda: NR (Não relacionado), NC (Não coberto), C (Coberto no tempo [X, X])")
+        self.pdf.cell(
+            0,
+            8,
+            f"Legenda: NR (Não relacionado), NC (Não coberto), C (Coberto no tempo [X, X])",
+        )
         self.pdf.ln()
 
         # Third section - COUPLING VALUES
@@ -134,8 +143,8 @@ class Printer:
             self.pdf.ln()
 
         # Fourth section (Coupling graph)
-        w = 200
-        y = (self.pdf.h - w ) / 2
+        w = 400
+        y = 35
         self.pdf.add_page()
         self.pdf.image(
             "data/data_couplings_flow/dc_graph.png", x=Align.C, y=y, w=w
