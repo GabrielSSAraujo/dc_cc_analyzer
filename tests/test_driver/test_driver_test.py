@@ -25,6 +25,7 @@ from models.parameter import Parameter
 class TestTestDriverGenerator(unittest.TestCase):
 
     def setUp(self):
+               
         self.test_driver = TestDriver()
         self.path_sut = "./tests/test_driver/SUT/sut.c"
         self.CType_parameters = [
@@ -111,6 +112,12 @@ def suite():
     return suite
 
 if __name__ == '__main__':
+    # Verifica se a pasta c_files existe, se não, cria a pasta
+    c_files_path = "./tests/test_driver/c_files"
+    
+    if not os.path.exists(c_files_path):
+        os.makedirs(c_files_path)
+    
     runner = unittest.TextTestRunner()
     runner.run(suite())
 
