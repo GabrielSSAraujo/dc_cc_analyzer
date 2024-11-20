@@ -40,6 +40,7 @@ debug:
 	@ echo ''
 	@ echo $(OBJ_SUTI)
 
+# REQ-1: A Ferramenta deve executar em sistemas operacionais Windows e distribuições Linux.
 # Move
 ifeq ($(OS),Windows_NT)
 moveObjs:
