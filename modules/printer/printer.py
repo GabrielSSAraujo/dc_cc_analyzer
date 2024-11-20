@@ -2,6 +2,8 @@ import pandas as pd
 import json
 from fpdf import FPDF, Align
 
+# REQ-8: A Ferramenta deve produzir como saída um relatório de cobertura DC/CC, em formato PDF, 
+# do SUT considerando como casos de teste os Test Vectors presentes na planilha de entrada.
 class Printer:
     def __init__(self, path, sut_path, test_vector_path, df_list, dc_coverage, pass_fail_coverage, pass_fail_data):
         # Set path to directory
