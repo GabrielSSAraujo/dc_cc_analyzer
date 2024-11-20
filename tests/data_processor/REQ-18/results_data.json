@@ -1,0 +1,45 @@
+{
+    "global": {
+        "pass_fail": 50.0,
+        "DC_CC_simple_coverage": 100.0,
+        "DC_CC_independent_coverage": 50.0
+    },
+    "couplings": {
+        "L1": {
+            "related_outputs": {
+                "SUTO1": {
+                    "covered": true,
+                    "time_of_coverage": [
+                        "0.0",
+                        "0.01"
+                    ]
+                },
+                "SUTO3": {
+                    "covered": false,
+                    "time_of_coverage": []
+                }
+            },
+            "exercised": true
+        },
+        "L2": {
+            "related_outputs": {
+                "SUTO2": {
+                    "covered": true,
+                    "time_of_coverage": [
+                        "0.0",
+                        "0.01"
+                    ]
+                },
+                "SUTO3": {
+                    "covered": false,
+                    "time_of_coverage": []
+                }
+            },
+            "exercised": true
+        }
+    },
+    "pass_fail": {
+        "0.0": true,
+        "0.01": false
+    }
+}
