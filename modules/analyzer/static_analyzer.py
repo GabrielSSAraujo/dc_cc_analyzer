@@ -4,6 +4,7 @@ from models.parameter import Parameter
 from models.coupling_state import CouplingState, StateOnDest
 from models.coupling_list import Coupling
 from models.function_body import Body
+from models.function_interface import FunctionInterface
 import pycparser_fake_libc
 
 
@@ -151,6 +152,7 @@ class FunctionAnalyzer:
     def __init__(self, functions):
         self.functions = functions
         self.written_coupling = []
+        self.record_name = {}
 
     def remove_aux_suffix(self, value):
         # Check if string ends with 'aux' and remove
@@ -168,79 +170,55 @@ class FunctionAnalyzer:
         return output
 
     def _analyze_parameter_coupling(self, main_function, variable_decl):
+        function_interface_list = []
         outputs_couplings = {}
         call_list = self.functions[main_function].body.calls
+
         for i in range(0, len(call_list)):
-            func_a = self.functions[call_list[i]]
-            output_params_func_a = self.get_function_outputs(func_a)
+            func = self.functions[call_list[i]]
+            function_interface = FunctionInterface()
+            function_interface.function_name = func.name
+            ret = func.body.function_return
 
-            for a_param in output_params_func_a:
-                coupling_list = []
-
-                if a_param.name in outputs_couplings.keys():
-                    continue
-
-                for j in range(i + 1, len(call_list)):
-                    func_b = self.functions[call_list[j]]
-                    func_b_parameters = func_b.parameters
-
-                    for b_param in func_b_parameters:
-                        if a_param == b_param:
-                            coupling_state = CouplingState()
-                            coupling_state.origin = func_a.name
-                            coupling_state.destination = func_b.name
-                            if func_a.body.assigned_to.name == a_param.name:
-                                coupling_state.parameter = func_a.body.assigned_to
-                            else:
-                                coupling_state.parameter = b_param
-
-                            if b_param.pointer_depth:
-                                coupling_state.state_on_dest = StateOnDest.M
-                            else:
-                                coupling_state.state_on_dest = StateOnDest.R
-
-                            coupling_list.append(coupling_state)
-
-                outputs_couplings[a_param.name] = coupling_list
-
-        coupling_data = []
-        for output_name in outputs_couplings:
-            last_state = StateOnDest.R
-            i = 0
-            parameter = Parameter()
-            parameter.name = output_name
-
-            for state in outputs_couplings[output_name]:
-                if last_state == StateOnDest.M:
-                    i += 1
-                    name = parameter.name
-                    parameter = Parameter()
-                    parameter.name = name + "_aux" * i
-                    parameter.old_name = name
-
-                for var_decl in variable_decl:
-                    if parameter.name.replace("_aux", "") == var_decl.name:
-                        parameter.type = var_decl.type
-                        parameter.pointer_depth = var_decl.pointer_depth
-                for var_decl in self.functions[main_function].parameters:
-                    if parameter.name.replace("_aux", "") == var_decl.name:
-                        parameter.type = var_decl.type
-                        parameter.pointer_depth = var_decl.pointer_depth
-
-                cd = Coupling()
-                cd.function_a = state.origin
-                cd.function_b = state.destination
-                cd.parameters.append(parameter)
-
-                if cd not in coupling_data:
-                    coupling_data.append(cd)
+            if ret.name:
+                if ret.name not in self.record_name:
+                    self.record_name[ret.name] = 0
                 else:
-                    coupling_data[coupling_data.index(cd)].parameters.extend(
-                        cd.parameters
-                    )
-                last_state = state.state_on_dest
+                    self.record_name[ret.name] += 1
 
-        return coupling_data
+                if self.record_name[ret.name] != 0:
+                    ret.current_name = ret.name + "_" + str(self.record_name[ret.name])
+                else:
+                    ret.current_name = ret.name
+                function_interface.output_parameters.append(ret)
+
+            for parameter in func.parameters:
+                if parameter.name not in self.record_name:
+                    self.record_name[parameter.name] = 0
+
+                parameter_copy = parameter.clone()
+                if self.record_name[parameter.name] != 0:
+                    parameter.current_name = (
+                        parameter.name + "_" + str(self.record_name[parameter.name])
+                    )
+                else:
+                    parameter.current_name = parameter.name
+                function_interface.input_parameters.append(parameter)
+
+                if parameter.pointer_depth:
+                    self.record_name[parameter_copy.name] += 1
+
+                    parameter_copy.current_name = (
+                        parameter_copy.name
+                        + "_"
+                        + str(self.record_name[parameter_copy.name])
+                    )
+                    function_interface.output_parameters.append(parameter_copy)
+
+            print(function_interface)
+            function_interface_list.append(function_interface)
+
+        return function_interface_list
 
     # If there is a function that does not call and has not been called, it is not used
     def find_unused_functions(self):

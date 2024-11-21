@@ -1,13 +1,17 @@
 from dataclasses import dataclass
 from typing import Optional
+import copy
 
 
 @dataclass
 class Parameter:
     type: Optional[str] = None
     name: Optional[str] = None
-    old_name: Optional[str] = None
+    current_name: Optional[str] = None
     pointer_depth: Optional[str] = None
+
+    def clone(self):
+        return copy.deepcopy(self)
 
     def __eq__(self, other):
         if not isinstance(other, Parameter):

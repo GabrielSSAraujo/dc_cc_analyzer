@@ -8,20 +8,27 @@ class FunctionCallInserter(c_ast.NodeVisitor):
         self.func_name = None
         self.args = None
         self.func_name_to_insert = None
-        self.coupled_parameter = None
+        self.probles = None
         self.type = None
 
     def set_data_to_insert(
-        self, func_name, func_name_to_insert, args=None, func_param=None, type=None
+        self,
+        func_name,
+        func_name_to_insert,
+        args=None,
+        func_param=None,
+        type=None,
+        insert_after=False,
     ):
+        self.insert_after = insert_after
         self.func_name = func_name
         self.args = args if args is not None else []
         self.func_name_to_insert = func_name_to_insert
         self.param = func_param
         self.type = type
 
-    def set_new_coupled_parameter_to_insert(self, coupled_param=None):
-        self.coupled_parameter = coupled_param
+    def set_new_probes_to_insert(self, coupled_param=None):
+        self.probes = coupled_param
 
     def generic_visit(self, node):
         # parent nodes are kept and the child nodes are updated
@@ -57,24 +64,8 @@ class FunctionCallInserter(c_ast.NodeVisitor):
         else:
             print("[Code Instrumenter][Error]: The main function has no body\n")
         if ind >= 0:
-            # insert function
-            # insert parameter definition and value if old_name defined(duplicated coupling)
-            if (
-                hasattr(self.coupled_parameter, "old_name")
-                and self.coupled_parameter.old_name != None
-            ):
-                if self.coupled_parameter.pointer_depth == "*":
-                    decl_param = (
-                        ast_node_structure.get_delc_init_pointer_parameter_structure(
-                            self.coupled_parameter
-                        )
-                    )
-                else:
-                    decl_param = ast_node_structure.get_decl_init_parameter_structure(
-                        self.coupled_parameter
-                    )
 
-                node.block_items.insert(ind, decl_param)
+            if self.insert_after:
                 node.block_items.insert(ind + 1, function_call)
             else:
                 node.block_items.insert(ind, function_call)
