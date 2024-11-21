@@ -15,7 +15,7 @@ import platform
 import json
 
 if __name__ == "__main__":
-    
+
     # Validate inputs
     print(">> Validating inputs...")
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     print(">> Identifying couplings...")
     static_analyzer = StaticAnalyzer()
     ast = static_analyzer.get_ast(path_sut)
-    coupled_data = static_analyzer.get_coupled_data(ast)
+    function_interface_list = static_analyzer.get_coupled_data(ast)
 
     # # Get SUT's typedefs primitive types
     types = TypeExtractor()
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     print(">> Generating instrumented code...")
     code_instrumenter = CodeInstrumenter()
     preprocessed_code = code_instrumenter.instrument_code(
-        ast, coupled_data, "sut", typedef_to_primitive_type
+        ast, function_interface_list, "sut", typedef_to_primitive_type
     )  # gera SUTI.c
 
     # # Format Instrumented SUT (suti.c)
@@ -56,14 +56,14 @@ if __name__ == "__main__":
         out_file.write(code)
     out_file.close()
 
-    # generate coupling_data.json with data coupling flow
-    dcf = DataCouplingFlow(coupled_data, static_analyzer.get_func_metadata())
-    dcf.analyze_data_flow()
-    dcf.save_graph("./data/data_couplings_flow/")
-    cd_json = json.dumps(dcf.get_coupling_to_output_mapping(), indent=4)
-    with open("./data/data_couplings_flow/couplings_data.json", "w+") as fp:
-        fp.write(str(cd_json))
-    fp.close()
+    # # generate coupling_data.json with data coupling flow
+    # dcf = DataCouplingFlow(coupled_data, static_analyzer.get_func_metadata())
+    # dcf.analyze_data_flow()
+    # dcf.save_graph("./data/data_couplings_flow/")
+    # cd_json = json.dumps(dcf.get_coupling_to_output_mapping(), indent=4)
+    # with open("./data/data_couplings_flow/couplings_data.json", "w+") as fp:
+    #     fp.write(str(cd_json))
+    # fp.close()
 
     # #Execute Test Driver with Original SUT
     main_funtion = static_analyzer.get_func_metadata("sut")
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     # Data extractor
     data_extractor = DataExtractor(path_testvector)
     input_path = data_extractor.extract_data(main_funtion.parameters)
-    
+
     # Test driver generator sut]
     print(">> Generating test drivers...")
     td_generator = TestDriver()
@@ -104,10 +104,13 @@ if __name__ == "__main__":
     # Compile Test Driver with Instrumented SUT and Original SUT
     print(">> Compiling codes...")
     if platform.system() == "Windows":
-        compilation = subprocess.run(["mingw32-make", "all", f"SRC_DIR={dir_name}"], stdout=subprocess.DEVNULL)
+        compilation = subprocess.run(
+            ["mingw32-make", "all", f"SRC_DIR={dir_name}"], stdout=subprocess.DEVNULL
+        )
     else:
-        compilation = subprocess.run(["make", "all", f"SRC_DIR={dir_name}"], stdout=subprocess.DEVNULL)
-
+        compilation = subprocess.run(
+            ["make", "all", f"SRC_DIR={dir_name}"], stdout=subprocess.DEVNULL
+        )
 
     # Execute Test Driver with SUT
     print(">> Executing test drivers...")
@@ -126,14 +129,21 @@ if __name__ == "__main__":
     # Analyze data produced by test driver execution
     print(">> Processing data...")
     data_processor = DataProcessor("./data/")
-    data_processor.analyze()
+    df_list = data_processor.analyze(function_interface_list)
+    dc_coverage = data_processor.get_coverage()
+    pass_fail_coverage = data_processor.get_pass_fail_coverage()
 
     # TO-DO: CREATE GET FUNCTIONS TO PASS DATA TO PRINTER
     print(">> Generating report...")
     testvector_abs_path = os.path.abspath(path_testvector)
     sut_abs_path = os.path.abspath(path_sut)
-    printer = Printer("./data/", sut_abs_path, testvector_abs_path)
+
+    printer = Printer(
+        "./data/", sut_abs_path, testvector_abs_path, df_list, dc_coverage
+    )
     printer.generate_report()
 
     print(">> DONE!")
-    print(f">> Check the report.pdf file in {os.path.dirname(os.path.abspath(__file__))}/ directory.")
+    print(
+        f">> Check the report.pdf file in {os.path.dirname(os.path.abspath(__file__))}/ directory."
+    )

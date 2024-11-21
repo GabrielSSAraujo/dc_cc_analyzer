@@ -59,8 +59,9 @@ class FunctionCallInserter(c_ast.NodeVisitor):
                     if block.name.name == self.func_name:
                         ind = index
                 elif hasattr(block, "rvalue"):
-                    if block.rvalue.name.name == self.func_name:
-                        ind = index
+                    if not isinstance(block.rvalue, c_ast.Constant):
+                        if block.rvalue.name.name == self.func_name:
+                            ind = index
         else:
             print("[Code Instrumenter][Error]: The main function has no body\n")
         if ind >= 0:

@@ -8,10 +8,31 @@ from models.function_interface import FunctionInterface
 import pycparser_fake_libc
 
 
+class VariableAssignmentVisitor(c_ast.NodeVisitor):
+    def __init__(self, func_name):
+        self.initialized = []
+        self.function_name = func_name
+
+    def visit_FuncDef(self, node):
+        if node.decl.name == self.function_name:
+            # Traverse the function body
+            self.visit(node.body)
+
+    def visit_Assignment(self, node):
+        if isinstance(node.rvalue, c_ast.Constant):
+            if hasattr(node.rvalue, "value"):
+                if node.rvalue.value:
+                    if isinstance(node.lvalue, c_ast.UnaryOp):
+                        self.initialized.append(node.lvalue.expr.name)
+                    if isinstance(node.lvalue, c_ast.ID):
+                        self.initialized.append(node.lvalue.name)
+
+
 class VariableDeclarationVisitor(c_ast.NodeVisitor):
     def __init__(self, function_name):
         self.function_name = function_name
         self.variable_declarations = []
+        self.initialized = []
 
     def visit_FuncDef(self, node):
         if node.decl.name == self.function_name:
@@ -20,6 +41,7 @@ class VariableDeclarationVisitor(c_ast.NodeVisitor):
 
     def visit_Decl(self, node):
         parameter = Parameter()
+
         if isinstance(node.type, c_ast.TypeDecl):
             parameter.name = node.name
             parameter.type = " ".join(node.type.type.names)
@@ -30,6 +52,10 @@ class VariableDeclarationVisitor(c_ast.NodeVisitor):
             parameter.pointer_depth = "*"
         if parameter.name:
             self.variable_declarations.append(parameter)
+
+        if hasattr(node, "init"):
+            if node.init:
+                self.initialized.append(parameter.name)
 
 
 class FuncDeclVisitor(c_ast.NodeVisitor):
@@ -149,10 +175,11 @@ class FuncDefVisitor(c_ast.NodeVisitor):
 
 # Analyze data coupling between functions
 class FunctionAnalyzer:
-    def __init__(self, functions):
+    def __init__(self, functions, initialized_param_list):
         self.functions = functions
         self.written_coupling = []
         self.record_name = {}
+        self.initialized_param_list = initialized_param_list
 
     def remove_aux_suffix(self, value):
         # Check if string ends with 'aux' and remove
@@ -169,9 +196,9 @@ class FunctionAnalyzer:
             output.append(function_return)
         return output
 
-    def _analyze_parameter_coupling(self, main_function, variable_decl):
+    def _analyze_parameter_coupling(self, main_function):
+        # se o parametro nao estiver na lista ela é so saida
         function_interface_list = []
-        outputs_couplings = {}
         call_list = self.functions[main_function].body.calls
 
         for i in range(0, len(call_list)):
@@ -190,6 +217,8 @@ class FunctionAnalyzer:
                     ret.current_name = ret.name + "_" + str(self.record_name[ret.name])
                 else:
                     ret.current_name = ret.name
+
+                self.initialized_param_list.append(ret.name)
                 function_interface.output_parameters.append(ret)
 
             for parameter in func.parameters:
@@ -203,9 +232,14 @@ class FunctionAnalyzer:
                     )
                 else:
                     parameter.current_name = parameter.name
-                function_interface.input_parameters.append(parameter)
 
-                if parameter.pointer_depth:
+                if not parameter.pointer_depth:
+                    function_interface.input_parameters.append(parameter)
+                else:
+                    if parameter.name in self.initialized_param_list:
+                        function_interface.input_parameters.append(parameter)
+                    self.initialized_param_list.append(parameter.name)
+
                     self.record_name[parameter_copy.name] += 1
 
                     parameter_copy.current_name = (
@@ -215,7 +249,6 @@ class FunctionAnalyzer:
                     )
                     function_interface.output_parameters.append(parameter_copy)
 
-            print(function_interface)
             function_interface_list.append(function_interface)
 
         return function_interface_list
@@ -229,7 +262,7 @@ class FunctionAnalyzer:
 class StaticAnalyzer:
     def __init__(self):
         self.functions_metadata = None
-        self.variables_def = []
+        self.initialized = []
 
     def get_ast(self, file_path):
         return self._generate_ast(file_path)
@@ -246,8 +279,17 @@ class StaticAnalyzer:
 
     def _extract_function_definitions(self, ast):
         # get definitions and parameters
-        self.variables_def = VariableDeclarationVisitor("sut")
-        self.variables_def.visit(ast)
+        variables_def = VariableDeclarationVisitor("sut")
+        variables_def.visit(ast)
+
+        self.initialized = variables_def.initialized
+
+        var_attr = VariableAssignmentVisitor("sut")
+        var_attr.visit(ast)
+
+        self.initialized.extend(var_attr.initialized)
+
+        self.initialized = list(set(self.initialized))
 
         definitions = FuncDeclVisitor()
         definitions.visit(ast)
@@ -268,8 +310,6 @@ class StaticAnalyzer:
     def get_coupled_data(self, ast):
         self._extract_function_definitions(ast)
 
-        function_analyzer = FunctionAnalyzer(self.functions_metadata)
-        coupled_data = function_analyzer._analyze_parameter_coupling(
-            "sut", self.variables_def.variable_declarations
-        )
+        function_analyzer = FunctionAnalyzer(self.functions_metadata, self.initialized)
+        coupled_data = function_analyzer._analyze_parameter_coupling("sut")
         return coupled_data

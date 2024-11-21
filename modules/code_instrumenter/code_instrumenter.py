@@ -20,7 +20,7 @@ class CodeInstrumenter:
             # if parameter.name in inserted_params:
             #     continue
             # fill parameters list
-            recorded_params.append(parameter.name)
+            recorded_params.append(parameter.current_name)
 
             # define the instrument function
             before_name = ""
@@ -71,6 +71,7 @@ class CodeInstrumenter:
 
         recorder_param = list(set(recorder_param))
         # initializing coupling list in recorder
+
         self.inserter.set_data_to_insert(
             main_func,
             "recorder_setCouplings",
