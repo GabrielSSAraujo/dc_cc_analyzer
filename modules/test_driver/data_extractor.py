@@ -2,9 +2,6 @@
  @file: data_extractor.py
  @brief [Descrição breve do arquivo]
 
- @date: 2024-11-12 17:29
- @author: Aline Andreotti Urna
- @e-mail: aline.urna@gmail.com
 """
 import pandas as pd
 import os
