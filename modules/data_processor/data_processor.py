@@ -72,7 +72,7 @@ class DataProcessor:
         for df_func in func_coverage_list:
             total_coverage += df_func.size
             coverage_count += (df_func != "0").sum().sum()
-        return coverage_count / total_coverage
+        return round((coverage_count / total_coverage) * 100, 2)
 
     def get_pass_fail_coverage(self):
         # Initialize pass/fail counters
@@ -116,9 +116,10 @@ class DataProcessor:
 
         # Calculate and log pass rate
         self.pass_rate = round((passed_tests / total_tests) * 100, 2)
-        print(self.pass_rate)
         # print(f"Percentage of passed test cases: {self.pass_rate:.2f}%")
         self.results_data["global"]["pass_fail"] = self.pass_rate
+        
+        return self.pass_rate, self.results_data["pass_fail"]
 
     def analyze(self, function_interface_list):
         tolerance = 0.00001
@@ -138,6 +139,7 @@ class DataProcessor:
                 d[item.current_name] = list
 
             new_df = pd.DataFrame(data=d, index=inputs)
+            new_df.name = function_interface.function_name
 
             for index, row in self.probes.iterrows():
                 if index < 1:

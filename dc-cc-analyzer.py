@@ -130,20 +130,16 @@ if __name__ == "__main__":
     print(">> Processing data...")
     data_processor = DataProcessor("./data/")
     df_list = data_processor.analyze(function_interface_list)
-    dc_coverage = data_processor.get_coverage()
-    pass_fail_coverage = data_processor.get_pass_fail_coverage()
+    dc_coverage = data_processor.get_coverage(df_list)
+    pass_fail_coverage, pass_fail_data = data_processor.get_pass_fail_coverage()
 
     # TO-DO: CREATE GET FUNCTIONS TO PASS DATA TO PRINTER
     print(">> Generating report...")
     testvector_abs_path = os.path.abspath(path_testvector)
     sut_abs_path = os.path.abspath(path_sut)
 
-    printer = Printer(
-        "./data/", sut_abs_path, testvector_abs_path, df_list, dc_coverage
-    )
+    printer = Printer("./data/", sut_abs_path, testvector_abs_path, df_list, dc_coverage, pass_fail_coverage, pass_fail_data)
     printer.generate_report()
 
     print(">> DONE!")
-    print(
-        f">> Check the report.pdf file in {os.path.dirname(os.path.abspath(__file__))}/ directory."
-    )
+    print(f">> Check the report.pdf file in {os.path.dirname(os.path.abspath(__file__))}/ directory.")
