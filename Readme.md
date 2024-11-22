@@ -24,6 +24,10 @@ python3  dc-cc-analyzer.py <path-to-sut> <path-to-testvectors>
 
 Where \<path-to-sut> is the path in your machine to the sut.c file you want to test and \<path-to-testvectors> is the path to the spreadsheet with the Test Vectors.
 
+## Documentation
+
+Check the [wiki](https://github.com/GabrielSSAraujo/dc_cc_analyzer/wiki) for more informations.
+
 ## Authors
 
 * Aline A. Urna - aau@cin.upfe.br
