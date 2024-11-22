@@ -17,7 +17,7 @@ class DataProcessor:
         self.expected_outputs = pd.read_csv(files_dir + "outputs.csv")
         self.actual_results = pd.read_csv(files_dir + "results_sut.csv")
         self.suti_results = pd.read_csv(files_dir + "results_suti.csv")
-        self.couplings = pd.read_csv(files_dir + "couplings.csv")
+        self.probes = pd.read_csv(files_dir + "couplings.csv")
         self.pass_rate = 0.0
         self.exercised_percentage = 0.0
         self.compromised_suti = False
@@ -66,7 +66,15 @@ class DataProcessor:
             > tolerance
         )
 
-    def analyze(self):
+    def get_coverage(self, func_coverage_list):
+        total_coverage = 0
+        coverage_count = 0
+        for df_func in func_coverage_list:
+            total_coverage += df_func.size
+            coverage_count += (df_func != "0").sum().sum()
+        return round((coverage_count / total_coverage) * 100, 2)
+
+    def get_pass_fail_coverage(self):
         # Initialize pass/fail counters
         total_tests = 0
         passed_tests = 0
@@ -110,9 +118,49 @@ class DataProcessor:
         self.pass_rate = round((passed_tests / total_tests) * 100, 2)
         # print(f"Percentage of passed test cases: {self.pass_rate:.2f}%")
         self.results_data["global"]["pass_fail"] = self.pass_rate
+        
+        return self.pass_rate, self.results_data["pass_fail"]
 
-        # Perform couplings analysis
-        self.analyze_couplings()
+    def analyze(self, function_interface_list):
+        tolerance = 0.00001
+        # self.probes
+        # se entradas variaram de forma independente
+        func_coverage_list = []
+        for function_interface in function_interface_list:
+            inputs = [item.current_name for item in function_interface.input_parameters]
+            outputs = [
+                item.current_name for item in function_interface.output_parameters
+            ]
+            input_size = len(inputs)
+            list = ["0"] * input_size
+            d = {}
+
+            for item in function_interface.output_parameters:
+                d[item.current_name] = list
+
+            new_df = pd.DataFrame(data=d, index=inputs)
+            new_df.name = function_interface.function_name
+
+            for index, row in self.probes.iterrows():
+                if index < 1:
+                    continue
+                has_changed = []
+
+                for input in inputs:
+                    last_row = self.probes.iloc[index - 1]
+
+                    if abs(row[input] - last_row[input]) > tolerance:
+                        has_changed.append(input)
+
+                if len(has_changed) == 1:
+                    for output in outputs:
+                        if abs(row[output] - last_row[output]) > tolerance:
+                            new_df.loc[has_changed[0], output] = (
+                                str(last_row["Time"]) + "-" + str(row["Time"])
+                            )
+            func_coverage_list.append(new_df)
+
+        return func_coverage_list
 
     def get_total_couplings(self):
         size = 0
@@ -121,93 +169,22 @@ class DataProcessor:
         return size
 
     def init_couplings_fields_in_results_data(self):
-        couplings = self.couplings.columns[1:]
+        couplings = self.probes.columns[1:]
         for coupling in couplings:
             self.results_data["couplings"][coupling] = {}
             self.results_data["couplings"][coupling]["related_outputs"] = {}
             for output in self.couplings_outputs:
                 couplings_related_to_output = self.couplings_outputs[output]
                 if coupling in couplings_related_to_output:
-                    self.results_data["couplings"][coupling]["related_outputs"][output] = {}
-                    self.results_data["couplings"][coupling]["related_outputs"][output]["covered"] = False
-                    self.results_data["couplings"][coupling]["related_outputs"][output]["time_of_coverage"] = []
-        
-    def analyze_couplings(self):
-        total_couplings = 0
-        exercised_couplings = 0
-        covered_couplings = 0
-        self.init_couplings_fields_in_results_data()
-
-        # Check each coupling's values against the tolerances
-        for coupling in self.couplings.columns[1:]:  # Skip the "Time" column
-            total_couplings += 1
-            coupling_exercised = False
-            coverage_time = []
-
-            # Iterate through values in the coupling column
-            for index in range(1, len(self.couplings)):
-                # Check if the coupling's value has changed compared to its previous value
-                tolerance = float(self.tolerances.get(coupling, 0))
-                if self.check_variation(index, coupling, self.couplings, tolerance):
-                    coupling_exercised = True
-                    exercised_couplings += 1
-                    break  # Stop further checks as it is already exercised
-
-            # Check if the coupling is responsible for covering a change in the output
-            for index in range(1, len(self.actual_results)):
-                for output_column in self.actual_results.columns:
-                    if output_column == "Time":
-                        continue
-
-                    # Check if the output has changed compared to its previous value
-                    output_tolerance = float(self.tolerances.get(output_column, 0))
-                    if self.check_variation(index, output_column, self.actual_results, output_tolerance):
-                        related_couplings = self.couplings_outputs.get(output_column, [])
-                        # Count how many related couplings have changed at this index
-                        changed_couplings = [
-                            rel_coupling
-                            for rel_coupling in related_couplings
-                            if self.check_variation(
-                                index,
-                                rel_coupling,
-                                self.couplings,
-                                float(self.tolerances.get(rel_coupling, 0)),
-                            )
-                        ]
-                        # If only one related coupling has changed, mark it as 'covered'
-                        if len(changed_couplings) == 1 and (coupling in changed_couplings) and not self.results_data["couplings"][coupling]["related_outputs"][output_column]["covered"]:
-                            covered_couplings += 1
-                            previous_time = str(self.actual_results.at[index - 1, "Time"])
-                            time_of_coverage = str(self.actual_results.at[index, "Time"])
-                            coverage_time = [previous_time, time_of_coverage]
-                            self.results_data["couplings"][coupling]["related_outputs"][output_column]["covered"] = True
-                            self.results_data["couplings"][coupling]["related_outputs"][output_column]["time_of_coverage"] = coverage_time
-                            break  # No need to check further outputs for this coupling
-
-            self.results_data["couplings"][coupling]["exercised"] = coupling_exercised
-
-        # Calculate and print the percentage of exercised and covered couplings
-        self.exercised_percentage = (
-            round((exercised_couplings / total_couplings) * 100, 2)
-            if total_couplings
-            else 0
-        )
-        self.covered_percentage = (
-            round((covered_couplings / self.get_total_couplings()) * 100, 2)
-            if total_couplings
-            else 0
-        )
-        # print(f"Percentage of exercised couplings: {self.exercised_percentage:.2f}%")
-        # print(f"Percentage of covered couplings: {self.covered_percentage:.2f}%")
-        self.results_data["global"]["DC_CC_simple_coverage"] = self.exercised_percentage
-        self.results_data["global"][
-            "DC_CC_independent_coverage"
-        ] = self.covered_percentage
-
-        # Writing results_data to a JSON file
-        with open(self.files_dir + "results_data.json", "w") as json_file:
-            json.dump(self.results_data, json_file, indent=4)
-        json_file.close()
+                    self.results_data["couplings"][coupling]["related_outputs"][
+                        output
+                    ] = {}
+                    self.results_data["couplings"][coupling]["related_outputs"][output][
+                        "covered"
+                    ] = False
+                    self.results_data["couplings"][coupling]["related_outputs"][output][
+                        "time_of_coverage"
+                    ] = []
 
 
 def round_to_match_decimals(number, reference):

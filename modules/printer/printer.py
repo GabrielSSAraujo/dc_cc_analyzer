@@ -2,49 +2,35 @@ import pandas as pd
 import json
 from fpdf import FPDF, Align
 
-
-# Step 4 - Create class PDF
 class Printer:
-    def __init__(self, path, sut_path, test_vector_path):
-        # Step 1: Set path to directory
+    def __init__(self, path, sut_path, test_vector_path, df_list, dc_coverage, pass_fail_coverage, pass_fail_data):
+        # Set path to directory
         self.path = path
         self.website = "https://github.com/GabrielSSAraujo/dc_cc_analyzer.git"
 
-        # Step 2: Read each CSV file into a DataFrame
-        self.inputs_df = pd.read_csv(self.path + "inputs.csv")
-        self.outputs_df = pd.read_csv(self.path + "outputs.csv", index_col=0)
-        self.coupling_df = pd.read_csv(self.path + "couplings.csv")
+        # Read each CSV file into a DataFrame
+        self.outputs_df = pd.read_csv(self.path + "outputs.csv")
         self.results_df = pd.read_csv(self.path + "results_sut.csv")
         self.sut_path = sut_path
         self.test_vector_path = test_vector_path
-        self.website = self.website
-        # Step 4.1 - Create FPDF Object
-        self.pdf = FPDF("L", "mm", "A3")
+        self.df_list = df_list
+        self.dc_coverage = dc_coverage
+        self.pass_fail_coverage = pass_fail_coverage
+        self.pass_fail_data = pass_fail_data
+
+        self.pdf = FPDF("P", "mm", "A3")
         self.pdf.set_title("DC/CC Analyzer Report")
         self.pdf.set_author(
             "Aline Andreotti, Bruno Alvarenga, Gabriel Santos, Gustavo Pinheiro, Moacir Galdino"
         )
 
-    def get_data_frame_from_json(self):
-        with open(self.path + "results_data.json", "r") as f:
-            return json.load(f)
-
-    # Step 5 - Fill up document
+    # Fill up document
     def generate_report(self):
-        # using pandas data frame
-        self.json_df = self.get_data_frame_from_json()
-
-        pass_fail_rate = self.json_df["global"]["pass_fail"]
-        dc_cc_coverage1 = self.json_df["global"]["DC_CC_simple_coverage"]
-        dc_cc_coverage2 = self.json_df["global"]["DC_CC_independent_coverage"]
-
         # Add first page
         self.pdf.add_page()
-        self.pdf.set_font("times", "", 16)
+        self.pdf.set_font("Times", "", 16)
         # First section
-        self.pdf.cell(
-            0, 10, "Data Coupling/Control Coupling Report", border=False, align="C"
-        )
+        self.pdf.cell(0, 16, "Data Coupling/Control Coupling Report", border=False, align="C")
         self.pdf.ln()
         self.pdf.cell(0, 10, f"Github location: {self.website}", link=self.website)
         self.pdf.ln()
@@ -52,97 +38,118 @@ class Printer:
         self.pdf.ln()
         self.pdf.cell(0, 10, f"Test Vector: {self.test_vector_path}")
         self.pdf.ln()
-        self.pdf.cell(0, 10, f"Pass/Fail: {pass_fail_rate}%")
+        self.pdf.cell(0, 10, f"Pass/Fail: {self.pass_fail_coverage}%")
         self.pdf.ln(10)
-        self.pdf.cell(0, 10, f"DC/CC Simple Coverage: {dc_cc_coverage1}%")
-        self.pdf.ln(10)
-        self.pdf.cell(0, 10, f"DC/CC Independent Coverage: {dc_cc_coverage2}%")
+        self.pdf.cell(0, 10, f"DC/CC Coverage: {self.dc_coverage}%")
         self.pdf.ln(10)
         
         # Set auto page break
         self.pdf.set_auto_page_break(auto = True, margin = 15)
 
-        # Second section - COUPLING STATUS
-        couplings_list = self.json_df["couplings"]
-        cols = ["Acoplamento", "Exercitado"]
-        for col in self.outputs_df.columns:
-            cols.append(col)
+        # Second section - Functions DC/CC report
+        self.pdf.set_font("Times", "B", 14)
+        self.pdf.cell(0, 14, f"Functions DC/CC report")
 
-        formatted_data_frame = pd.DataFrame(columns=cols)
-        i = 0
-        for coupling in couplings_list:
-            new_row = {"Acoplamento": str(coupling), "Exercitado": str(couplings_list[str(coupling)]["exercised"])}
-            for col in formatted_data_frame.columns[2:]:
-                related_outputs = couplings_list[str(coupling)]["related_outputs"]
-                new_row[col] = "NR" # Não relacionado
-                if col in related_outputs:
-                    if related_outputs[col]["covered"]:
-                        new_row[col] = "C em " + str(related_outputs[col]["time_of_coverage"])
-                    else:
-                        new_row[col] = "NC" # Não coberto
-            formatted_data_frame.loc[i] = new_row
-            i += 1
+        for df in self.df_list:
+            # Calculate columns width
+            col_width = 30
 
-        # Table header
-        num_columns = len(formatted_data_frame.columns)
-        col_width = (self.pdf.w - 2 * self.pdf.l_margin) / num_columns
-
-        self.pdf.ln()
-        self.pdf.set_font("helvetica", "B", 12)
-        for col in formatted_data_frame.columns:
-            self.pdf.cell(col_width, 10, txt=col, border=1)
-        self.pdf.ln()
-        # Table body
-        self.pdf.set_font("helvetica", "", 12)
-        for index, row in formatted_data_frame.iterrows():
-            for col in formatted_data_frame.columns:
-                self.pdf.cell(col_width, 10, text=str(row[col]), border=1)
+            self.pdf.ln()
+            # Header
+            self.pdf.set_font("Times", "B", 12)
+            self.pdf.cell(col_width, 10, txt=df.name, border=1, align="C")
+            for col in df.columns:
+                self.pdf.cell(col_width, 10, txt=col, border=1, align="C")
             self.pdf.ln()
 
+            # Body
+            self.pdf.set_font("Times", "", 12)
+            for index, row in df.iterrows():
+                self.pdf.cell(col_width, 10, text=str(index), border=1, align="C")
+                for col in df.columns:
+                    text = ""
+                    if row[col] == "0":
+                        text = "NC"
+                        self.pdf.set_fill_color("#ea9999")
+                    else:
+                        text = "C (" + row[col] + ")"
+                        self.pdf.set_fill_color("#b6d7a8")
+                    self.pdf.cell(col_width, 10, text=text, border=1, align="C", fill = True)
+                self.pdf.ln()
+        
         # Legend
-        self.pdf.cell(0, 8, f"Legenda: NR (Não relacionado), NC (Não coberto), C (Coberto no tempo [X, X])")
+        self.pdf.ln()
+        self.pdf.cell(0, 8, f"Caption: C: Covered (time of coverage), NC: Not Covered.")
+        self.pdf.ln()
+        self.pdf.cell(0, 8, f"Note: The rows represent the identified inputs of each function, and the columns represent the outputs.")
         self.pdf.ln()
 
-        # Third section - COUPLING VALUES
-        # Ouputs
-        for output in self.results_df.columns[1:]:
-            self.coupling_df[str(output)] = self.results_df[str(output)]
+        # Third section - Pass/Fail report
+        self.pdf.add_page()
+        self.pdf.set_font("Times", "B", size=14)
+        self.pdf.cell(0, 14, f"Pass/Fail report", )
 
-        pass_fail_list = []
-        for time in self.json_df["pass_fail"]:
-            pass_fail_list.append(self.json_df["pass_fail"][str(time)])
-        self.coupling_df["Pass/Fail"] = pass_fail_list
+        # Create DataFrame structure
+        cols = ["Time", "Generated", "Expected", "Pass/Fail"]
+        df_pass_fail = pd.DataFrame(columns=cols)
 
+        time = []
+        generated = {}
+        for i in range(len(self.results_df)):
+            for col in self.results_df.columns:
+                if col == "Time":
+                    time.insert(i, self.outputs_df.iloc[i][col])
+                    generated[i] = []
+                    continue
+                generated[i].append(str(col) + "=" + str(round(self.outputs_df.iloc[i][col], 3)))
+        
+        df_pass_fail["Time"] = time
+
+        expected = {}
+        for i in range(len(self.outputs_df)):
+            for col in self.outputs_df.columns:
+                if col == "Time":
+                    expected[i] = []
+                    continue
+                expected[i].append(str(col) + "=" + str(round(self.outputs_df.iloc[i][col], 3)))
+        
+        pass_fail = []
+        for time in self.pass_fail_data:
+            pass_fail.append(self.pass_fail_data[time])
+        
+        df_pass_fail["Pass/Fail"] = pass_fail
+
+        # Print to PDF
         # Calculate columns width
-        num_columns = len(self.coupling_df.columns)
-        col_width = (self.pdf.w - 2 * self.pdf.l_margin) / num_columns
+        col_width = (self.pdf.w - 2 * self.pdf.l_margin) / len(df_pass_fail.columns)
 
+        # Header
         self.pdf.ln()
-        self.pdf.set_font("helvetica", "B", 12)
-        for col in self.coupling_df.columns:
-            self.pdf.cell(col_width, 10, txt=col, border=1)
+        self.pdf.set_font("Times", "B", 12)
+        for col in df_pass_fail.columns:
+            self.pdf.cell(col_width, 10, txt=col, border=1, align="C")
         self.pdf.ln()
 
-        self.pdf.set_font("helvetica", "", 12)
-        for index, row in self.coupling_df.iterrows():
-            for col in self.coupling_df.columns:
-                if pass_fail_list[index]:
+        # Body
+        self.pdf.set_font("Times", "", 12)
+        for index, row in df_pass_fail.iterrows():
+            for col in df_pass_fail.columns:
+                if df_pass_fail["Pass/Fail"][index]:
                     self.pdf.set_fill_color("#b6d7a8")
                 else:
                     self.pdf.set_fill_color("#ea9999")
-                self.pdf.cell(col_width, 10, text=str(row[col]), border=1, fill=True)
+                
+                if col == "Generated":
+                    width = col_width/len(generated[index])
+                    for output in generated[index]:
+                        self.pdf.cell(width, 10, text=str(output), border=1, fill=True, align="C")
+                elif col == "Expected":
+                    width = col_width/len(expected[index])
+                    for output in expected[index]:
+                        self.pdf.cell(width, 10, text=str(output), border=1, fill=True, align="C")
+                else:
+                    self.pdf.cell(col_width, 10, text=str(row[col]), border=1, fill=True, align="C")
             self.pdf.ln()
-
-        # Fourth section (Coupling graph)
-        w = 200
-        y = (self.pdf.h - w ) / 2
-        self.pdf.add_page()
-        self.pdf.image(
-            "data/data_couplings_flow/dc_graph.png", x=Align.C, y=y, w=w
-        )  # Adjust x, y, and w as needed
-        self.pdf.ln()  # Move cursor below the image
-        self.pdf.set_font("helvetica", "", 12)
-        self.pdf.cell(0, 24, "Figura: Coupling Graph", 0, 1, "C")  # Centered caption
 
         # Close document
         self.pdf.output("report.pdf")
