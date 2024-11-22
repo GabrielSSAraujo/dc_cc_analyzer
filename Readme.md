@@ -1,24 +1,33 @@
 # dc_cc_analyzer
-- # POC DC/CC tool
-This project aims to analyze software and generate a report on data coupling and control coupling
 
-## Summary
-1. [Requirements](#requirements)
-2. [How to use](#how-to-use)
-3. [Features](#features)
-4. [Contribute](#contribute)
-5. [License](#license)
-6. [Authors](#authors)
-
-## Requirements
+This project is a tool designed to perform DC/CC coverage analysis for software written in the C programming language.
 
 ## How to use
-In the ``tests`` folder, insert your CSV file containing your test cases in the following structure:
 
-## Features
+### Dependecies
 
-## Contribute
+Python 3.10.12. gcc 11.4.0.
 
-## License
+To install all Python libraries, run:
+
+```
+pip install -r requirements.txt
+```
+
+### How to run
+
+In the source directory of this tool, run:
+
+```
+python3  dc-cc-analyzer.py <path-to-sut> <path-to-testvectors>
+```
+
+Where \<path-to-sut> is the path in your machine to the sut.c file you want to test and \<path-to-testvectors> is the path to the spreadsheet with the Test Vectors.
 
 ## Authors
+
+* Aline A. Urna - aau@cin.upfe.br
+* Bruno A. Colturato - bac2@cin.ufpe.br
+* Gabriel S. S. Araújo - gssa@cin.ufpe.br
+* Gustavo P. C. Silveira - gpcs@cin.upfe.br
+* Moacir F. M. G. de Lima - mfmgl@cin.upfe.br 
