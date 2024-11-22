@@ -22,9 +22,6 @@ class DataProcessor:
         self.exercised_percentage = 0.0
         self.compromised_suti = False
         self.results_data = {"global": {}, "couplings": {}, "pass_fail": {}}
-        self.couplings_outputs = self.load_couplings_outputs(
-            files_dir + "data_couplings_flow/couplings_data.json"
-        )
 
         # Load tolerances as a dictionary
         tolerances_df = pd.read_csv(
@@ -33,16 +30,6 @@ class DataProcessor:
         self.tolerances = tolerances_df[
             1
         ].to_dict()  # Column 1 contains tolerance values
-
-    def load_couplings_outputs(self, json_file_path):
-        """Load the couplings outputs JSON file and return it as a dictionary."""
-        try:
-            with open(json_file_path, "r") as file:
-                data = json.load(file)
-            return data
-        except Exception as e:
-            logging.error(f"Error loading couplings outputs JSON file: {e}")
-            return {}
 
     def check_variation(self, row_index, column, dataframe, tolerance):
         """
