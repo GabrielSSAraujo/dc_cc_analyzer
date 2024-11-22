@@ -1,9 +1,34 @@
 from pycparser import c_ast, parse_file, c_generator
 from models.function_structure import FuncStructure
 from models.parameter import Parameter
+from models.coupling_state import CouplingState, StateOnDest
 from models.coupling_list import Coupling
 from models.function_body import Body
 import pycparser_fake_libc
+
+
+class VariableDeclarationVisitor(c_ast.NodeVisitor):
+    def __init__(self, function_name):
+        self.function_name = function_name
+        self.variable_declarations = []
+
+    def visit_FuncDef(self, node):
+        if node.decl.name == self.function_name:
+            # Traverse the function body
+            self.visit(node.body)
+
+    def visit_Decl(self, node):
+        parameter = Parameter()
+        if isinstance(node.type, c_ast.TypeDecl):
+            parameter.name = node.name
+            parameter.type = " ".join(node.type.type.names)
+            parameter.pointer_depth = ""
+        if isinstance(node.type, c_ast.PtrDecl):
+            parameter.name = node.name
+            parameter.type = " ".join(node.type.type.type.names)
+            parameter.pointer_depth = "*"
+        if parameter.name:
+            self.variable_declarations.append(parameter)
 
 
 class FuncDeclVisitor(c_ast.NodeVisitor):
@@ -52,6 +77,7 @@ class FuncDeclVisitor(c_ast.NodeVisitor):
 
         # save the current funtion
         self.current_name = node_type.declname
+
         if self.current_name not in self.functions_list:
             current_function = FuncStructure(
                 type=" ".join(node_type.type.names),
@@ -87,8 +113,8 @@ class FuncDeclVisitor(c_ast.NodeVisitor):
                     params[index].name = arg.name
 
                 elif isinstance(arg, c_ast.UnaryOp):
-                    if(arg.op == "&"):
-                        params[index].pointer_depth = "&" #parametro não é ponteiro apenas referência(mas é saida)
+                    if arg.op == "&":
+                        params[index].pointer_depth = "&"
                     if isinstance(arg.expr, c_ast.ID):
                         params[index].name = arg.expr.name
 
@@ -126,72 +152,95 @@ class FunctionAnalyzer:
         self.functions = functions
         self.written_coupling = []
 
-    def _identify_coupled_parameters(
-        self, func_a_parameters, func_b_parameters, function_a_return
-    ):
-        coord_a = []
-        coord_b = []
-        parameters = []
-        output_params_func_a = [
-            (i, param)
-            for i, param in enumerate(func_a_parameters)
-            if param.pointer_depth
-        ]
+    def remove_aux_suffix(self, value):
+        # Check if string ends with 'aux' and remove
+        while value.endswith("_aux"):
+            value = value[:-4] if value.endswith("_aux") else value
+        return value
 
-        for index, param in enumerate(func_b_parameters):
-            # if not param.pointer_depth:
-            # check coupling between function return and parameters
-            if function_a_return == param:
-                coord_a.append(-1)
-                coord_b.append(index)
-                if function_a_return.name in self.written_coupling:
-                    function_a_return.old_name = function_a_return.name
-                    function_a_return.name  = function_a_return.name+"_aux"
-                    # function_a_return.name = function_a_return.name+"_aux"
-                parameters.append(function_a_return)
-                self.written_coupling.append(function_a_return.name)
+    def get_function_outputs(self, function_metadata):
+        function_parameters = function_metadata.parameters
+        function_return = function_metadata.body.assigned_to
 
-            # check coupling between parameters
-            for a_param in output_params_func_a:
-                if param == a_param[1]:
-                    coord_b.append(index)
-                    coord_a.append(a_param[0])
-                    if param.name in self.written_coupling:
-                        param.old_name = param.name 
-                        param.name = param.name+"_aux"
+        output = [param for param in function_parameters if param.pointer_depth]
+        if function_return.name:
+            output.append(function_return)
+        return output
 
-                    parameters.append(param)
-                    self.written_coupling.append(param.name)
-        return coord_a, coord_b, parameters
-
-    def _analyze_parameter_coupling(self, main_function):
-        coupling_list = []
+    def _analyze_parameter_coupling(self, main_function, variable_decl):
+        outputs_couplings = {}
         call_list = self.functions[main_function].body.calls
         for i in range(0, len(call_list)):
-            for j in range(i + 1, len(call_list)):
-                coupling_data = Coupling()
-                # find_parameter_coupling
-                func_a_parameters = self.functions[call_list[i]].parameters
-                function_a_return = self.functions[call_list[i]].body.assigned_to
-                func_b_parameters = self.functions[call_list[j]].parameters
-                (
-                    coupling_data.coord_a,
-                    coupling_data.coord_b,
-                    coupling_data.parameters,
-                ) = self._identify_coupled_parameters(
-                    func_a_parameters, func_b_parameters, function_a_return
-                )
-                if len(coupling_data.coord_a) > 0 and len(coupling_data.coord_b) > 0:
+            func_a = self.functions[call_list[i]]
+            output_params_func_a = self.get_function_outputs(func_a)
 
-                    funca = self.functions[call_list[i]].name
-                    funcb = self.functions[call_list[j]].name
+            for a_param in output_params_func_a:
+                coupling_list = []
 
-                    coupling_data.function_a = funca
-                    coupling_data.function_b = funcb
+                if a_param.name in outputs_couplings.keys():
+                    continue
 
-                    coupling_list.append(coupling_data)
+                for j in range(i + 1, len(call_list)):
+                    func_b = self.functions[call_list[j]]
+                    func_b_parameters = func_b.parameters
 
-        return coupling_list
+                    for b_param in func_b_parameters:
+                        if a_param == b_param:
+                            coupling_state = CouplingState()
+                            coupling_state.origin = func_a.name
+                            coupling_state.destination = func_b.name
+                            if func_a.body.assigned_to.name == a_param.name:
+                                coupling_state.parameter = func_a.body.assigned_to
+                            else:
+                                coupling_state.parameter = b_param
+
+                            if b_param.pointer_depth:
+                                coupling_state.state_on_dest = StateOnDest.M
+                            else:
+                                coupling_state.state_on_dest = StateOnDest.R
+
+                            coupling_list.append(coupling_state)
+
+                outputs_couplings[a_param.name] = coupling_list
+
+        coupling_data = []
+        for output_name in outputs_couplings:
+            last_state = StateOnDest.R
+            i = 0
+            parameter = Parameter()
+            parameter.name = output_name
+
+            for state in outputs_couplings[output_name]:
+                if last_state == StateOnDest.M:
+                    i += 1
+                    name = parameter.name
+                    parameter = Parameter()
+                    parameter.name = name + "_aux" * i
+                    parameter.old_name = name
+
+                for var_decl in variable_decl:
+                    if parameter.name.replace("_aux", "") == var_decl.name:
+                        parameter.type = var_decl.type
+                        parameter.pointer_depth = var_decl.pointer_depth
+                for var_decl in self.functions[main_function].parameters:
+                    if parameter.name.replace("_aux", "") == var_decl.name:
+                        parameter.type = var_decl.type
+                        parameter.pointer_depth = var_decl.pointer_depth
+
+                cd = Coupling()
+                cd.function_a = state.origin
+                cd.function_b = state.destination
+                cd.parameters.append(parameter)
+
+                if cd not in coupling_data:
+                    coupling_data.append(cd)
+                else:
+                    coupling_data[coupling_data.index(cd)].parameters.extend(
+                        cd.parameters
+                    )
+                last_state = state.state_on_dest
+
+        return coupling_data
 
     # If there is a function that does not call and has not been called, it is not used
     def find_unused_functions(self):
@@ -202,17 +251,14 @@ class FunctionAnalyzer:
 class StaticAnalyzer:
     def __init__(self):
         self.functions_metadata = None
+        self.variables_def = []
 
     def get_ast(self, file_path):
         return self._generate_ast(file_path)
 
     def _generate_ast(self, file_path):
         fake_libc_arg = "-I" + pycparser_fake_libc.directory
-        return parse_file(
-            file_path,
-            use_cpp=True,
-            cpp_args=["-E", fake_libc_arg]
-        )
+        return parse_file(file_path, use_cpp=True, cpp_args=["-E", fake_libc_arg])
 
     def get_func_metadata(self, functions_name=None):
         if not functions_name:
@@ -222,6 +268,9 @@ class StaticAnalyzer:
 
     def _extract_function_definitions(self, ast):
         # get definitions and parameters
+        self.variables_def = VariableDeclarationVisitor("sut")
+        self.variables_def.visit(ast)
+
         definitions = FuncDeclVisitor()
         definitions.visit(ast)
 
@@ -242,6 +291,7 @@ class StaticAnalyzer:
         self._extract_function_definitions(ast)
 
         function_analyzer = FunctionAnalyzer(self.functions_metadata)
-        coupled_data = function_analyzer._analyze_parameter_coupling("sut")
-
+        coupled_data = function_analyzer._analyze_parameter_coupling(
+            "sut", self.variables_def.variable_declarations
+        )
         return coupled_data
