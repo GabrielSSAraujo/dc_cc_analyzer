@@ -79,9 +79,9 @@ class Printer:
         
         # Legend
         self.pdf.ln()
-        self.pdf.cell(0, 8, f"Caption: C: Covered (time of coverage), NC (Not Covered).")
+        self.pdf.cell(0, 8, f"Caption: C: Covered (time of coverage), NC: Not Covered.")
         self.pdf.ln()
-        self.pdf.cell(0, 8, f"Note: The rows represent the inputs of each function, and the columns represent the identified outputs.")
+        self.pdf.cell(0, 8, f"Note: The rows represent the identified inputs of each function, and the columns represent the outputs.")
         self.pdf.ln()
 
         # Third section - Pass/Fail report
