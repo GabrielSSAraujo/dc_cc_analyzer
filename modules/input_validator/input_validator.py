@@ -19,14 +19,14 @@ class InputValidator:
             print("[ERROR] Something went wrong while trying to validate inputs")
             return False
 
-    # REQ-5: Caso a Ferramenta não receba um de seus parâmetros de entrada, ela deve produzir uma mensagem de erro no terminal informando "[ERROR] Missing one or more tool inputs".
+    # REQ-3: Caso a Ferramenta não receba um de seus parâmetros de entrada, ela deve produzir uma mensagem de erro no terminal informando "[ERROR] Missing one or more tool inputs".
     def validate_argv(self) -> bool:
         if len(self.__argv) != 3:
             print("[ERROR] Missing one or more tool inputs")
             return False
         return True
 
-    # REQ-6: Caso um dos arquivos de entrada não exista, a Ferramenta deve produzir uma mensagem de erro informando "[ERROR] Could not find {input} input file at path {path}", onde {input} deve ser substituído por "SUT" ou "TestVector" conforme o caso e {path} deve ser substituído pelo caminho passado pelo usuário para o referido arquivo.
+    # REQ-4: Caso um dos arquivos de entrada não exista, a Ferramenta deve produzir uma mensagem de erro informando "[ERROR] Could not find {input} input file at path {path}", onde {input} deve ser substituído por "SUT" ou "TestVector" conforme o caso e {path} deve ser substituído pelo caminho passado pelo usuário para o referido arquivo.
     def validate_files(self) -> bool:
         if not (os.path.isfile(self.__argv[1])):
             print(f"[ERROR] Could not find SUT input file at path {self.__argv[1]}")
@@ -38,7 +38,7 @@ class InputValidator:
             return False
         return True
 
-    # REQ-7: Caso a Ferramenta receba como entrada um SUT que não esteja em linguagem C, ela deve produzir uma mensagem de erro no terminal informando "[ERROR] Only SUT in C are accepted".
+    # REQ-5: Caso a Ferramenta receba como entrada um SUT que não esteja em linguagem C, ela deve produzir uma mensagem de erro no terminal informando "[ERROR] Only SUT in C are accepted".
     def validate_sut(self) -> bool:
         _, file_extension = os.path.splitext(self.__argv[1])
         if file_extension != ".c":
@@ -46,7 +46,7 @@ class InputValidator:
             return False
         return True
 
-    # REQ-8: Caso a Ferramenta receba como entrada um arquivo de Test Vectors que não esteja no formato Excel ou CSV, a Ferramenta deve produzir uma mensagem de erro informando "[ERROR] Only Test Vectors in .xlsx or .csv are accepted".
+    # REQ-6: Caso a Ferramenta receba como entrada um arquivo de Test Vectors que não esteja no formato Excel (.xlsx ou .xls) ou CSV, a Ferramenta deve produzir uma mensagem de erro informando "[ERROR] Only Test Vectors in .xlsx, .xls or .csv are accepted".
     def validate_test_vectors_file(self) -> bool:
         _, file_extension = os.path.splitext(self.__argv[2])
         if (
@@ -54,11 +54,11 @@ class InputValidator:
             and file_extension != ".xlsx"
             and file_extension != ".xls"
         ):
-            print("[ERROR] Only Test Vectors in .xlsx or .csv are accepted")
+            print("[ERROR] Only Test Vectors in .xlsx, .xls or .csv are accepted")
             return False
         return True
 
-    # REQ-9: Caso o arquivo de Test Vectors não esteja no formato indicado na aba "TestVec", a Ferramenta deve produzir uma mensagem de erro informando "[ERROR] Bad Test Vector format".
+    # REQ-7: A Ferramenta deve verificar se a planilha de Test Vectors segue o formato indicado na aba TestVec e, caso possua alguma divergência, deve produzir a mensagem "[ERROR] Bad Test Vector format".
     # Premissa: o separador do arquivo csv é a virgula e o separador decimal é o ponto.
     def validate_test_vectors_format(self) -> bool:
         _, file_extension = os.path.splitext(self.__argv[2])
