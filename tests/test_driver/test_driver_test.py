@@ -113,7 +113,6 @@ class TestTestDriverGenerator(unittest.TestCase):
                 ],
                 stdout=subprocess.DEVNULL,
             )
-        print()
         # test if compilation was successful
         self.assertEqual(
             compilation.returncode,
@@ -147,12 +146,12 @@ class TestTestDriverGenerator(unittest.TestCase):
         self.verify_csv_files(self.result_file_path_suti)
 
 
-def suite():
-    suite = unittest.TestSuite()
-    suite.addTest(TestTestDriverGenerator("test_driver_suite"))
-    return suite
+# def suite():
+#     suite = unittest.TestSuite()
+#     suite.addTest(TestTestDriverGenerator("test_driver_suite"))
+#     return suite
 
 
-if __name__ == "__main__":
-    runner = unittest.TextTestRunner()
-    runner.run(suite())
+# if __name__ == "__main__":
+#     runner = unittest.TextTestRunner()
+#     runner.run(suite())
