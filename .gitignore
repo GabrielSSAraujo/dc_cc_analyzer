@@ -7,3 +7,4 @@ testdriver_sut
 testdriver_suti
 report.pdf
 *.exe
+*.o
