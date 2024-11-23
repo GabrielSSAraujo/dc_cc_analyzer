@@ -87,12 +87,10 @@ class DataCouplingFlow:
         return self.coupling_output_mapping
 
     def save_graph(self, path):
+        # Draw graph
+        plt.figure(figsize=(18, 12))
+        pos = nx.spring_layout(self.graph)  # Define a posição dos nós
 
-        # Configure the position of nodes
-        pos = nx.spring_layout(self.graph, k=1.0)
-
-        # Draw nodes
-        nx.draw_networkx_nodes(self.graph, pos, node_size=3000, node_color="skyblue")
         nx.draw(
             self.graph,
             pos,
@@ -103,9 +101,8 @@ class DataCouplingFlow:
             font_weight="bold",
             edge_color="gray",
             arrows=True,
-            arrowsize=20,
         )
 
         # Save png image
-        plt.figure(figsize=(18, 12))
         plt.savefig(path + "dc_graph.png", format="png", dpi=300)
+        
