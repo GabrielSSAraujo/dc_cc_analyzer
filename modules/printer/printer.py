@@ -1,6 +1,5 @@
 import pandas as pd
-import json
-from fpdf import FPDF, Align
+from fpdf import FPDF
 
 # REQ-13: A Ferramenta deve produzir como saída um relatório de cobertura DC/CC, em formato PDF, 
 # do SUT considerando como casos de teste os Test Vectors presentes na planilha de entrada.
@@ -26,6 +25,36 @@ class Printer:
             "Aline Andreotti, Bruno Alvarenga, Gabriel Santos, Gustavo Pinheiro, Moacir Galdino"
         )
 
+    def get_generated_outputs(self):
+        generated = {}
+        for i in range(len(self.results_df)):
+            for col in self.results_df.columns:
+                if col == "Time":
+                    generated[i] = []
+                    continue
+                generated[i].append(str(col) + "=" + str(round(self.outputs_df.iloc[i][col], 3)))
+        
+        return generated
+    
+    def get_expected_outputs(self):
+        expected = {}
+        for i in range(len(self.outputs_df)):
+            for col in self.outputs_df.columns:
+                if col == "Time":
+                    expected[i] = []
+                    continue
+                expected[i].append(str(col) + "=" + str(round(self.outputs_df.iloc[i][col], 3)))
+        return expected
+    
+    def get_time(self):
+        return [el for el in self.pass_fail_data]
+    
+    def get_pass_fail(self):
+        pass_fail = []
+        for time in self.pass_fail_data:
+            pass_fail.append(self.pass_fail_data[time])
+        return pass_fail
+        
     # Fill up document
     def generate_report(self):
         # Add first page
@@ -36,12 +65,20 @@ class Printer:
         self.pdf.ln()
         self.pdf.cell(0, 10, f"Github location: {self.website}", link=self.website)
         self.pdf.ln()
+
+        # REQ-15: A Ferramenta deve registrar no relatório o caminho (path) para o arquivo "sut.c" analisado.
         self.pdf.cell(0, 10, f"Project: {self.sut_path}")
         self.pdf.ln()
+
+        #REQ-16: A Ferramenta deve registrar no relatório o caminho (path) para a planilha de Test Vectors utilizada para a análise.
         self.pdf.cell(0, 10, f"Test Vector: {self.test_vector_path}")
         self.pdf.ln()
+
+        # REQ-17: A Ferramenta deve registrar no relatório a porcentagem de Test Vectors que, após serem executados pelo SUT, produziram as saídas esperadas.
         self.pdf.cell(0, 10, f"Pass/Fail: {self.pass_fail_coverage}%")
         self.pdf.ln(10)
+
+        #REQ-18: A Ferramenta deve registrar no relatório a porcentagem de cobertura DC/CC obtida.
         self.pdf.cell(0, 10, f"DC/CC Coverage: {self.dc_coverage}%")
         self.pdf.ln(10)
 
@@ -49,6 +86,7 @@ class Printer:
         self.pdf.set_auto_page_break(auto=True, margin=15)
 
         # Second section - Functions DC/CC report
+        # REQ-19: Para cada função do SUT, a Ferramenta deve registrar no relatório suas entradas e saídas, além de identificar quais entradas, individualmente, foram capazes de influenciar as saídas da função e quais foram as saídas influenciadas.
         self.pdf.set_font("Times", "B", 14)
         self.pdf.cell(0, 14, f"Functions DC/CC report")
 
@@ -59,9 +97,9 @@ class Printer:
             self.pdf.ln()
             # Header
             self.pdf.set_font("Times", "B", 12)
-            self.pdf.cell(col_width, 10, txt=df.name, border=1, align="C")
+            self.pdf.cell(col_width, 10, text=df.name, border=1, align="C")
             for col in df.columns:
-                self.pdf.cell(col_width, 10, txt=col, border=1, align="C")
+                self.pdf.cell(col_width, 10, text=col, border=1, align="C")
             self.pdf.ln()
 
             # Body
@@ -87,6 +125,7 @@ class Printer:
         self.pdf.ln()
 
         # Third section - Pass/Fail report
+        # REQ-20: A ferramenta deve registrar no relatório o valor esperado e o valor produzido pelo SUT para cada Test Vector, indicando também se o valor produzido correspondeu ao esperado (resultado do teste: aprovado ou reprovado).
         self.pdf.add_page()
         self.pdf.set_font("Times", "B", size=14)
         self.pdf.cell(0, 14, f"Pass/Fail report", )
@@ -95,31 +134,11 @@ class Printer:
         cols = ["Time", "Generated", "Expected", "Pass/Fail"]
         df_pass_fail = pd.DataFrame(columns=cols)
 
-        time = []
-        generated = {}
-        for i in range(len(self.results_df)):
-            for col in self.results_df.columns:
-                if col == "Time":
-                    time.insert(i, self.outputs_df.iloc[i][col])
-                    generated[i] = []
-                    continue
-                generated[i].append(str(col) + "=" + str(round(self.outputs_df.iloc[i][col], 3)))
-        
-        df_pass_fail["Time"] = time
-
-        expected = {}
-        for i in range(len(self.outputs_df)):
-            for col in self.outputs_df.columns:
-                if col == "Time":
-                    expected[i] = []
-                    continue
-                expected[i].append(str(col) + "=" + str(round(self.outputs_df.iloc[i][col], 3)))
-        
-        pass_fail = []
-        for time in self.pass_fail_data:
-            pass_fail.append(self.pass_fail_data[time])
-        
-        df_pass_fail["Pass/Fail"] = pass_fail
+        # Get required data
+        df_pass_fail["Time"] = self.get_time()
+        generated = self.get_generated_outputs()
+        expected = self.get_expected_outputs()
+        df_pass_fail["Pass/Fail"] = self.get_pass_fail()
 
         # Print to PDF
         # Calculate columns width
@@ -129,7 +148,7 @@ class Printer:
         self.pdf.ln()
         self.pdf.set_font("Times", "B", 12)
         for col in df_pass_fail.columns:
-            self.pdf.cell(col_width, 10, txt=col, border=1, align="C")
+            self.pdf.cell(col_width, 10, text=col, border=1, align="C")
         self.pdf.ln()
 
         # Body
