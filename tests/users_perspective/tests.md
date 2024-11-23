@@ -1,4 +1,4 @@
-# Tests done to cover REQ-1, REQ-2, REQ-8 and REQ-9
+# Tests done to cover REQ-1, REQ-2, REQ-13 and REQ-14
 
 ## Test 1
 1. Download the project to your Windows machine.
@@ -12,8 +12,8 @@ python dc-cc-analyzer.py ..\sut_final\sut.c ..\sut_final\TestVec.xls
 ```
 
 6. Verify that the software runs without errors. (REQ-1, REQ-2)
-7. Verify that the software produces the message "Check the report.pdf file in \<path> directory", where path is the `dc_cc_analyzer` folder path. (REQ-9)
-8. Verify that the `report.pdf` file is a Data and Control Coupling report and that the report indicates that the test vectors used are those in the `TestVec.xls` file. (REQ-8)
+7. Verify that the software produces the message "Check the report.pdf file in \<path> directory", where path is the `dc_cc_analyzer` folder path. (REQ-14)
+8. Verify that the `report.pdf` file is a Data and Control Coupling report and that the report indicates that the test vectors used are those in the `TestVec.xls` file. (REQ-13)
 
 ### Results
 
@@ -31,8 +31,8 @@ python3 dc-cc-analyzer.py ../sut_final/sut.c ../sut_final/TestVec.xls
 ```
 
 6. Verify that the software runs without errors. (REQ-1, REQ-2)
-7. Verify that the software produces the message "Check the report.pdf file in \<path> directory", where path is the `dc_cc_analyzer` folder path. (REQ-9)
-8. Verify that the `report.pdf` file is a Data and Control Coupling report and that the report indicates that the test vectors used are those in the `TestVec.xls` file. (REQ-8)
+7. Verify that the software produces the message "Check the report.pdf file in \<path> directory", where path is the `dc_cc_analyzer` folder path. (REQ-14)
+8. Verify that the `report.pdf` file is a Data and Control Coupling report and that the report indicates that the test vectors used are those in the `TestVec.xls` file. (REQ-13)
 
 ### Results
 

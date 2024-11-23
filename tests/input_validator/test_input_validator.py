@@ -1,5 +1,6 @@
-# How to run: python3 test_input_validator.py
-# Run it on Linux
+# How to run: 
+# Make sure you are in the "dc_cc_analyzer/test/input_validator" directory
+# Run on Linux: python3 test_input_validator.py
 
 import io
 import unittest
@@ -50,13 +51,13 @@ class TestInputValidator(unittest.TestCase):
         self.assertTrue(iv.validate_sut())
         del iv
 
-    def test_req8_TestVec_CSV(self):
+    def test_req6_TestVec_CSV(self):
         iv = InputValidator(["dc_cc_analyzer", f"{data_path}/SUT/sut.c", f"{data_path}/test_vectors/TestVec_VCP-500-VC-01.csv"])
         self.assertTrue(iv.validate_test_vectors_file())
         del iv
 
     @patch("sys.stdout", new_callable=io.StringIO)
-    def test_req8_TestVec_TXT(self, mock_stdout):
+    def test_req6_TestVec_TXT(self, mock_stdout):
         iv = InputValidator(["dc_cc_analyzer", f"{data_path}/SUT/sut.c", f"{data_path}/test_vectors/TestVec_VCP-500-VC-01.txt"])
         self.assertFalse(iv.validate_test_vectors_file())
         self.assertEqual(mock_stdout.getvalue(), "[ERROR] Only Test Vectors in .xlsx, .xls or .csv are accepted\n")

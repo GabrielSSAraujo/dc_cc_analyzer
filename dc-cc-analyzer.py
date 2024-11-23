@@ -137,7 +137,7 @@ if __name__ == "__main__":
     dc_coverage = data_processor.get_coverage(df_list)
     pass_fail_coverage, pass_fail_data = data_processor.get_pass_fail_coverage()
 
-    # REQ-8: A Ferramenta deve produzir como saída um relatório de cobertura DC/CC, em formato PDF, 
+    # REQ-13: A Ferramenta deve produzir como saída um relatório de cobertura DC/CC, em formato PDF, 
     # do SUT considerando como casos de teste os Test Vectors presentes na planilha de entrada.
     print(">> Generating report...")
     testvector_abs_path = os.path.abspath(path_testvector)
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     
     print(">> DONE!")
 
-    # REQ-9: Ao término da geração do relatório de cobertura, a Ferramenta deve informar ao usuário 
+    # REQ-14: Ao término da geração do relatório de cobertura, a Ferramenta deve informar ao usuário 
     # no terminal: "Check the report.pdf file in <path> directory.", onde "<path>" indica o local onde 
     # o relatório foi armazenado no computador do usuário.
     print(f">> Check the report.pdf file in {os.path.dirname(os.path.abspath(__file__))} directory.")
