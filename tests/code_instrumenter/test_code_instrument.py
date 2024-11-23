@@ -50,10 +50,25 @@ class TestCodeInstrumenter(unittest.TestCase):
 
     def test_req8_verify_code_compilation(self):
         # write code to file
-        with open(data_path + "/SUT/suti.c", "w+") as fp:
+        with open(data_path + "/SUT/suti/suti.c", "w+") as fp:
             fp.write(str(self.code))
         # check if the code has an error
+        main_path = data_path + "/SUT/suti/main.c"
+        sut_path = data_path + "/SUT/suti/suti.c"
+        recorder_path = project_root + "/modules/coupling_recorder/coupling_recorder.c"
+        list_path = project_root + "/modules/coupling_recorder/list.c"
+
         compilation = subprocess.run(
-            ["gcc", "suti.c", "-o", "suti"], capture_output=True, text=True
+            [
+                "gcc",
+                main_path,
+                sut_path,
+                recorder_path,
+                list_path,
+                "-o",
+                data_path + "/SUT/suti/suti",
+            ],
+            capture_output=True,
+            text=True,
         )
-        self.assertTrue(compilation.returncode)
+        self.assertEqual(compilation.returncode, 0)
