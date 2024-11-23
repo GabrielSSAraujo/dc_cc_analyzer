@@ -46,7 +46,10 @@ class TestCodeInstrumenter(unittest.TestCase):
                 if param.name not in already_verified:
                     pattern = rf'recorder_record\(".*?",\s*&?{re.escape(param.name)},\s*"{re.escape(param.type)}"\);'
                     already_verified.append(param.current_name)
-                    self.assertTrue(re.search(pattern, self.code))
+                    self.assertTrue(
+                        re.search(pattern, self.code),
+                        f"[ERRO] Parameter: {param}, has not been inserted!",
+                    )
 
     def test_req8_verify_code_compilation(self):
         # write code to file
@@ -71,4 +74,6 @@ class TestCodeInstrumenter(unittest.TestCase):
             capture_output=True,
             text=True,
         )
-        self.assertEqual(compilation.returncode, 0)
+        self.assertEqual(
+            compilation.returncode, 0, f"Instrumented SUT compilation error"
+        )
