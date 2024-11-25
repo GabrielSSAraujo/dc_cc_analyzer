@@ -2,14 +2,13 @@ import unittest
 import sys
 import os
 import pdfquery
-sys.path.insert(0, "../..") # Add project root to path
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+sys.path.insert(0, project_root)  # Insere o diretório raiz no início do sys.path
 
 from modules.analyzer.static_analyzer import StaticAnalyzer
 from modules.data_processor.data_processor import DataProcessor
 from modules.printer.printer import Printer
-
-# Get absolute path of data for the tests
-data_path = os.path.join(os.path.dirname(__file__), "..", "data")
 
 # Aux functions
 def get_elements_between_texts(pdf, text1, text2):
@@ -50,21 +49,21 @@ def get_elements_after_text(pdf, text):
 class TestPrinter(unittest.TestCase):
     def custom_setUp(self, sut_dir_path, data_dir_path):
         # Set up StaticAnalyzer
-        self.path_sut = os.path.abspath(f"./{sut_dir_path}/sut.c")
+        self.path_sut = os.path.abspath(os.path.join(os.path.dirname(__file__), f"./{sut_dir_path}/sut.c"))
         static_analyzer = StaticAnalyzer()
         ast = static_analyzer.get_ast(self.path_sut)
         function_interface_list = static_analyzer.get_coupled_data(ast)
 
         # Set up DataProcessor
-        path_data = os.path.abspath(f"./{data_dir_path}") + "/" 
+        path_data = os.path.abspath(os.path.join(os.path.dirname(__file__),f"./{data_dir_path}")) + "/" 
         data_processor = DataProcessor(path_data)
         self.df_list = data_processor.analyze(function_interface_list)
         self.dc_coverage = data_processor.get_coverage(self.df_list)
         self.pass_fail_coverage, self.pass_fail_data = data_processor.get_pass_fail_coverage()
 
         # Set up Printer
-        self.testvector_path = os.path.abspath(f"./{sut_dir_path}/TestVec.csv")
-        printer = Printer(f"./{data_dir_path}/", self.path_sut, self.testvector_path, self.df_list, self.dc_coverage, self.pass_fail_coverage, self.pass_fail_data)
+        self.testvector_path = os.path.abspath(os.path.join(os.path.dirname(__file__),f"./{sut_dir_path}/TestVec.csv"))
+        printer = Printer(os.path.join(os.path.dirname(__file__),f"./{data_dir_path}/"), self.path_sut, self.testvector_path, self.df_list, self.dc_coverage, self.pass_fail_coverage, self.pass_fail_data)
         self.expected_outputs = printer.get_expected_outputs()
         self.generated_outputs = printer.get_generated_outputs()
         self.times = printer.get_time()
@@ -76,7 +75,7 @@ class TestPrinter(unittest.TestCase):
     def test_req15_sut_path_01(self):
         self.custom_setUp("sut1", "data1")
 
-        report_path = os.path.abspath("./report.pdf")
+        report_path = os.path.abspath(os.path.join(os.path.dirname(__file__),"../../report.pdf"))
         pdf = pdfquery.PDFQuery(report_path)
         pdf.load()
 
@@ -88,7 +87,7 @@ class TestPrinter(unittest.TestCase):
     def test_req16_testvec_path_01(self):
         self.custom_setUp("sut1", "data1")
 
-        report_path = os.path.abspath("./report.pdf")
+        report_path =os.path.abspath(os.path.join(os.path.dirname(__file__),"../../report.pdf"))
         pdf = pdfquery.PDFQuery(report_path)
         pdf.load()
 
@@ -100,7 +99,7 @@ class TestPrinter(unittest.TestCase):
     def test_req17_pass_fail_coverage_01(self):
         self.custom_setUp("sut1", "data1")
         
-        report_path = os.path.abspath("./report.pdf")
+        report_path =os.path.abspath(os.path.join(os.path.dirname(__file__),"../../report.pdf"))
         pdf = pdfquery.PDFQuery(report_path)
         pdf.load()
 
@@ -112,7 +111,7 @@ class TestPrinter(unittest.TestCase):
     def test_req18_dccc_coverage_01(self):
         self.custom_setUp("sut1", "data1")
         
-        report_path = os.path.abspath("./report.pdf")
+        report_path =os.path.abspath(os.path.join(os.path.dirname(__file__),"../../report.pdf"))
         pdf = pdfquery.PDFQuery(report_path)
         pdf.load()
 
@@ -124,7 +123,7 @@ class TestPrinter(unittest.TestCase):
     def test_req19_dccc_tables_01(self):
         self.custom_setUp("sut1", "data1")
         
-        report_path = os.path.abspath("./report.pdf")
+        report_path =os.path.abspath(os.path.join(os.path.dirname(__file__),"../../report.pdf"))
         pdf = pdfquery.PDFQuery(report_path)
         pdf.load()
 
@@ -162,7 +161,7 @@ class TestPrinter(unittest.TestCase):
     def test_req20_pass_fail_tables_01(self):
         self.custom_setUp("sut1", "data1")
         
-        report_path = os.path.abspath("./report.pdf")
+        report_path =os.path.abspath(os.path.join(os.path.dirname(__file__),"../../report.pdf"))
         pdf = pdfquery.PDFQuery(report_path)
         pdf.load()
 
@@ -200,7 +199,7 @@ class TestPrinter(unittest.TestCase):
     def test_req15_sut_path_02(self):
         self.custom_setUp("sut2", "data2")
 
-        report_path = os.path.abspath("./report.pdf")
+        report_path =os.path.abspath(os.path.join(os.path.dirname(__file__),"../../report.pdf"))
         pdf = pdfquery.PDFQuery(report_path)
         pdf.load()
 
@@ -212,7 +211,7 @@ class TestPrinter(unittest.TestCase):
     def test_req16_testvec_path_02(self):
         self.custom_setUp("sut2", "data2")
 
-        report_path = os.path.abspath("./report.pdf")
+        report_path =os.path.abspath(os.path.join(os.path.dirname(__file__),"../../report.pdf"))
         pdf = pdfquery.PDFQuery(report_path)
         pdf.load()
 
@@ -224,7 +223,7 @@ class TestPrinter(unittest.TestCase):
     def test_req17_pass_fail_coverage_02(self):
         self.custom_setUp("sut2", "data2")
         
-        report_path = os.path.abspath("./report.pdf")
+        report_path =os.path.abspath(os.path.join(os.path.dirname(__file__),"../../report.pdf"))
         pdf = pdfquery.PDFQuery(report_path)
         pdf.load()
 
@@ -236,7 +235,7 @@ class TestPrinter(unittest.TestCase):
     def test_req18_dccc_coverage_02(self):
         self.custom_setUp("sut2", "data2")
         
-        report_path = os.path.abspath("./report.pdf")
+        report_path =os.path.abspath(os.path.join(os.path.dirname(__file__),"../../report.pdf"))
         pdf = pdfquery.PDFQuery(report_path)
         pdf.load()
 
@@ -248,7 +247,7 @@ class TestPrinter(unittest.TestCase):
     def test_req19_dccc_tables_02(self):
         self.custom_setUp("sut2", "data2")
         
-        report_path = os.path.abspath("./report.pdf")
+        report_path =os.path.abspath(os.path.join(os.path.dirname(__file__),"../../report.pdf"))
         pdf = pdfquery.PDFQuery(report_path)
         pdf.load()
 
@@ -286,7 +285,7 @@ class TestPrinter(unittest.TestCase):
     def test_req20_pass_fail_tables_02(self):
         self.custom_setUp("sut2", "data2")
         
-        report_path = os.path.abspath("./report.pdf")
+        report_path =os.path.abspath(os.path.join(os.path.dirname(__file__),"../../report.pdf"))
         pdf = pdfquery.PDFQuery(report_path)
         pdf.load()
 
@@ -321,5 +320,5 @@ class TestPrinter(unittest.TestCase):
 
         pdf.file.close()
 
-if __name__ == "__main__":
-    unittest.main(verbosity=2)
+# if __name__ == "__main__":
+#     unittest.main(verbosity=2)
