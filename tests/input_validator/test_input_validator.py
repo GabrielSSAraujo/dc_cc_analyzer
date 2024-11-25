@@ -12,7 +12,7 @@ sys.path.insert(0, "../..") # Include "modules" package
 from modules.input_validator.input_validator import InputValidator
 
 # Get absolute path of data for the tests
-data_path = os.path.join(os.path.dirname(__file__), "..", "data")
+data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
 
 
 class TestInputValidator(unittest.TestCase):

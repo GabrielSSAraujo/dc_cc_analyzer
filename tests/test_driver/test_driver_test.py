@@ -18,6 +18,7 @@ import subprocess
 import os
 import platform
 import sys
+import pandas as pd
 
 # Encontra o diretório raiz do projeto (dois níveis acima do arquivo atual)
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
@@ -34,23 +35,17 @@ class TestTestDriverGenerator(unittest.TestCase):
     def setUp(self):
 
         self.test_driver = TestDriver()
-        self.path_sut = "./tests/test_driver/SUT/sut.c"
         self.CType_parameters = [
-            Parameter(type="int", name="SUTI1", pointer_depth=0),
-            Parameter(type="int", name="SUTI2", pointer_depth=0),
-            Parameter(type="float", name="SUTI3", pointer_depth=0),
-            Parameter(type="int", name="SUTI4", pointer_depth=0),
-            Parameter(type="int", name="SUTI5", pointer_depth=0),
-            Parameter(type="int", name="SUTI6", pointer_depth=0),
-            Parameter(type="int", name="SUTI7", pointer_depth=0),
-            Parameter(type="int", name="SUTO2", pointer_depth=1),
-            Parameter(type="float", name="SUTO1", pointer_depth=1),
+            Parameter(type="int", name="i1", pointer_depth=0),
+            Parameter(type="int", name="o1", pointer_depth=1),
         ]
-        self.formatter_spec = {"int": "%d", "float": "%f"}
+        self.formatter_spec = {"int": "%d"}
 
-        data_extractor = DataExtractor(
-            "./tests/data/test_vectors/TestVec_VCP-500-VC-01.csv"
+        self.data_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "data")
         )
+        self.path_sut = self.data_path + "/SUT/sut.c"
+        data_extractor = DataExtractor(self.data_path + "/SUT/TestVec.csv")
         self.input_path = data_extractor.extract_data(self.CType_parameters)
 
     def test_generating_testDriver_c_files(self):
@@ -59,7 +54,7 @@ class TestTestDriverGenerator(unittest.TestCase):
         self.result_file_path_sut = "./data/results_sut.csv"
         self.test_driver.test_driver_generator(
             self.input_path,
-            os.path.dirname(self.path_sut) + "/sut.h",
+            self.data_path + "/SUT/sut.h",
             self.result_file_path_sut,
             self.original_file_path_sut,
             self.CType_parameters,
@@ -78,7 +73,7 @@ class TestTestDriverGenerator(unittest.TestCase):
         self.result_file_path_suti = "./data/results_suti.csv"
         self.test_driver.test_driver_generator(
             self.input_path,
-            os.path.dirname(self.path_sut) + "/sut.h",
+            self.data_path + "/SUT/sut.h",
             self.result_file_path_suti,
             self.original_file_path_suti,
             self.CType_parameters,
@@ -97,7 +92,7 @@ class TestTestDriverGenerator(unittest.TestCase):
                 [
                     "mingw32-make",
                     "all",
-                    f"SRC_DIR={project_root}/modules/test_driver",
+                    f"SRC_DIR={os.path.dirname(self.path_sut)}",
                     # f"SRC_TEST_DRIVER={project_root}/modules/test_driver/c_files",
                 ],
                 stdout=subprocess.DEVNULL,
@@ -133,9 +128,12 @@ class TestTestDriverGenerator(unittest.TestCase):
 
     def verify_csv_files(self, result_file_path):
         # test if result file was created
-        self.assertTrue(
-            os.path.exists(result_file_path), f"{result_file_path} was not created"
-        )
+        self.assertTrue(os.path.exists(result_file_path))
+
+        ref_result_df = pd.read_csv(self.data_path + "/result_ref.csv")
+        result_df = pd.read_csv(project_root + "/data/results_suti.csv")
+
+        self.assertTrue(ref_result_df.equals(result_df))
 
     def test_driver_suite(self):
         # tests suite

@@ -7,7 +7,7 @@ import pandas as pd
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
 sys.path.insert(0, project_root)  # Insere o diretório raiz no início do sys.path
 # Get full absolute path of data for the tests
-data_path = os.path.join(os.path.dirname(__file__), "..", "data")
+data_path = os.path.join(os.path.dirname(__file__), "data")
 
 from modules.data_processor.data_processor import DataProcessor
 from models.function_interface import FunctionInterface
@@ -18,7 +18,7 @@ class TestDataProcessor(unittest.TestCase):
     def setUp(self):
 
         # create data process object
-        path = data_path + "/data_processor_mock/"
+        path = data_path + "/"
         self.data_processor = DataProcessor(path)
 
         # create components
