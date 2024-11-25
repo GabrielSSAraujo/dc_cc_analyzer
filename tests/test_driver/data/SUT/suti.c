@@ -1,4 +1,4 @@
-#include "/home/gabriel/codes/tcc/dc_cc_analyzer/modules/coupling_recorder/coupling_recorder.h"
+#include "../../../../modules/coupling_recorder/coupling_recorder.h"
 #include "sut.h"
 void f1(int i1, int *a)
 
