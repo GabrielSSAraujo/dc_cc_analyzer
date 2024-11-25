@@ -5,4 +5,6 @@ temp/*
 objects
 testdriver_sut
 testdriver_suti
-*.pdf
+report.pdf
+*.exe
+*.o

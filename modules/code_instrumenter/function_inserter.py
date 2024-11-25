@@ -63,7 +63,8 @@ class FunctionCallInserter(c_ast.NodeVisitor):
                         if block.rvalue.name.name == self.func_name:
                             ind = index
         else:
-            print("[Code Instrumenter][Error]: The main function has no body\n")
+            print("[Code Instrumenter][Error]: The main function has no body")
+            exit(1)
         if ind >= 0:
 
             if self.insert_after:

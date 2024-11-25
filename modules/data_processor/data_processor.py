@@ -13,7 +13,6 @@ class DataProcessor:
     def __init__(self, files_dir):
         # Load CSV files
         self.files_dir = files_dir
-        self.inputs = pd.read_csv(files_dir + "inputs.csv")
         self.expected_outputs = pd.read_csv(files_dir + "outputs.csv")
         self.actual_results = pd.read_csv(files_dir + "results_sut.csv")
         self.suti_results = pd.read_csv(files_dir + "results_suti.csv")
@@ -59,7 +58,10 @@ class DataProcessor:
         for df_func in func_coverage_list:
             total_coverage += df_func.size
             coverage_count += (df_func != "0").sum().sum()
-        return round((coverage_count / total_coverage) * 100, 2)
+        if total_coverage > 0:
+            return round((coverage_count / total_coverage) * 100, 2)
+        else:
+            return 0
 
     def get_pass_fail_coverage(self):
         # Initialize pass/fail counters
@@ -105,7 +107,7 @@ class DataProcessor:
         self.pass_rate = round((passed_tests / total_tests) * 100, 2)
         # print(f"Percentage of passed test cases: {self.pass_rate:.2f}%")
         self.results_data["global"]["pass_fail"] = self.pass_rate
-        
+
         return self.pass_rate, self.results_data["pass_fail"]
 
     def analyze(self, function_interface_list):

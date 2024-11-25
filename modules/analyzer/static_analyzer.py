@@ -41,7 +41,6 @@ class VariableDeclarationVisitor(c_ast.NodeVisitor):
 
     def visit_Decl(self, node):
         parameter = Parameter()
-
         if isinstance(node.type, c_ast.TypeDecl):
             parameter.name = node.name
             parameter.type = " ".join(node.type.type.names)

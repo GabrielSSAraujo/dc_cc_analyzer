@@ -105,3 +105,4 @@ class DataCouplingFlow:
 
         # Save png image
         plt.savefig(path + "dc_graph.png", format="png", dpi=300)
+        

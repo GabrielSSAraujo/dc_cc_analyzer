@@ -23,6 +23,9 @@ if __name__ == "__main__":
     if not input_validator.validate():
         exit(1)
 
+    # REQ-2: A Ferramenta deve ser executada por meio de linha de comando seguindo a estrutura 
+    # "python3 dc-cc-analyzer.py <sut> <test-vector>", onde "<sut>" é o caminho para o arquivo 
+    # "sut.c" e "<test-vector>" é o caminho para a planilha de Test Vectors no computador do usuário.
     path_sut = sys.argv[1]
     path_testvector = sys.argv[2]
     dir_name = os.path.dirname(path_sut)
@@ -101,6 +104,7 @@ if __name__ == "__main__":
         formatter_spec_sut,
     )
 
+    # REQ-1: A Ferramenta deve executar em sistemas operacionais Windows e distribuições Linux.
     # Compile Test Driver with Instrumented SUT and Original SUT
     print(">> Compiling codes...")
     if platform.system() == "Windows":
@@ -133,13 +137,18 @@ if __name__ == "__main__":
     dc_coverage = data_processor.get_coverage(df_list)
     pass_fail_coverage, pass_fail_data = data_processor.get_pass_fail_coverage()
 
-    # TO-DO: CREATE GET FUNCTIONS TO PASS DATA TO PRINTER
+    # REQ-13: A Ferramenta deve produzir como saída um relatório de cobertura DC/CC, em formato PDF, 
+    # do SUT considerando como casos de teste os Test Vectors presentes na planilha de entrada.
     print(">> Generating report...")
     testvector_abs_path = os.path.abspath(path_testvector)
     sut_abs_path = os.path.abspath(path_sut)
 
     printer = Printer("./data/", sut_abs_path, testvector_abs_path, df_list, dc_coverage, pass_fail_coverage, pass_fail_data)
     printer.generate_report()
-
+    
     print(">> DONE!")
-    print(f">> Check the report.pdf file in {os.path.dirname(os.path.abspath(__file__))}/ directory.")
+
+    # REQ-14: Ao término da geração do relatório de cobertura, a Ferramenta deve informar ao usuário 
+    # no terminal: "Check the report.pdf file in <path> directory.", onde "<path>" indica o local onde 
+    # o relatório foi armazenado no computador do usuário.
+    print(f">> Check the report.pdf file in {os.path.dirname(os.path.abspath(__file__))} directory.")

@@ -1,0 +1,17 @@
+test_req15_sut_path_01 (__main__.TestPrinter) ... ok
+test_req15_sut_path_02 (__main__.TestPrinter) ... ok
+test_req16_testvec_path_01 (__main__.TestPrinter) ... ok
+test_req16_testvec_path_02 (__main__.TestPrinter) ... ok
+test_req17_pass_fail_coverage_01 (__main__.TestPrinter) ... ok
+test_req17_pass_fail_coverage_02 (__main__.TestPrinter) ... ok
+test_req18_dccc_coverage_01 (__main__.TestPrinter) ... ok
+test_req18_dccc_coverage_02 (__main__.TestPrinter) ... ok
+test_req19_dccc_tables_01 (__main__.TestPrinter) ... ok
+test_req19_dccc_tables_02 (__main__.TestPrinter) ... ok
+test_req20_pass_fail_tables_01 (__main__.TestPrinter) ... ok
+test_req20_pass_fail_tables_02 (__main__.TestPrinter) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 2.820s
+
+OK
