@@ -1,7 +1,6 @@
 import os.path
 import pandas as pd
 
-
 class InputValidator:
     def __init__(self, argv):
         self.__argv = argv

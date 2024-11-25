@@ -1,7 +1,5 @@
 from pycparser import c_generator
-from models.coupling_list import Coupling
 from modules.code_instrumenter.function_inserter import FunctionCallInserter
-
 
 class CodeInstrumenter:
     def __init__(self, main_func="sut"):

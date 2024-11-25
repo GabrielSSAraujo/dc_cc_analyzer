@@ -1,14 +1,4 @@
-"""
- @file: test_driver_generator.py
- @brief [Descrição breve do arquivo]
-
-"""
-
-from modules.test_driver.data_extractor import DataExtractor
 import shutil
-import pandas as pd
-from models.parameter import Parameter
-
 
 class TestDriver:
 

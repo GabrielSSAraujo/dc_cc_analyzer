@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import Optional
 import copy
 
-
 @dataclass
 class Parameter:
     type: Optional[str] = None

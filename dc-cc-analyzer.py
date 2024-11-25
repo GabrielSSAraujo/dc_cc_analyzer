@@ -7,15 +7,12 @@ from modules.input_validator.input_validator import InputValidator
 from modules.test_driver.data_extractor import DataExtractor
 from modules.printer.printer import Printer
 from modules.test_driver.test_driver_generator import TestDriver
-from modules.data_couplings_flow.data_couplings_flow import DataCouplingFlow
 import sys
 import os
 import subprocess
 import platform
-import json
 
 if __name__ == "__main__":
-
     # Validate inputs
     print(">> Validating inputs...")
 
@@ -36,7 +33,7 @@ if __name__ == "__main__":
     ast = static_analyzer.get_ast(path_sut)
     function_interface_list = static_analyzer.get_coupled_data(ast)
 
-    # # Get SUT's typedefs primitive types
+    # Get SUT's typedefs primitive types
     types = TypeExtractor()
     typedef_to_primitive_type = types.get_types_from_ast(ast)
 
@@ -54,21 +51,12 @@ if __name__ == "__main__":
 
     code = include_abs_path_recorder + code
 
-    # # # Create sut_inst.c file
+    # Create sut_inst.c file
     with open(dir_name + "/suti.c", "w+") as out_file:
         out_file.write(code)
     out_file.close()
 
-    # # generate coupling_data.json with data coupling flow
-    # dcf = DataCouplingFlow(coupled_data, static_analyzer.get_func_metadata())
-    # dcf.analyze_data_flow()
-    # dcf.save_graph("./data/data_couplings_flow/")
-    # cd_json = json.dumps(dcf.get_coupling_to_output_mapping(), indent=4)
-    # with open("./data/data_couplings_flow/couplings_data.json", "w+") as fp:
-    #     fp.write(str(cd_json))
-    # fp.close()
-
-    # #Execute Test Driver with Original SUT
+    # Execute Test Driver with Original SUT
     main_funtion = static_analyzer.get_func_metadata("sut")
 
     CType_parameters_sut = []

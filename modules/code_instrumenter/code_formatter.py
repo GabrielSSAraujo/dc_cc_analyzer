@@ -4,7 +4,6 @@ import difflib
 import os
 import shutil
 
-
 class CodeFormatter:
 
     def __init__(self, file_path, analyzer: StaticAnalyzer):

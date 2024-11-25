@@ -1,6 +1,5 @@
 from pycparser import c_ast
 
-
 class TypeDefVisitor(c_ast.NodeVisitor):
     def __init__(self):
         self.type_list = {}

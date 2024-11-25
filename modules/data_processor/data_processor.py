@@ -1,13 +1,11 @@
 import pandas as pd
 import logging
 import decimal
-import json
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
-
 
 class DataProcessor:
     def __init__(self, files_dir):

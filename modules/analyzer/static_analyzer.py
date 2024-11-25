@@ -1,12 +1,9 @@
 from pycparser import c_ast, parse_file, c_generator
 from models.function_structure import FuncStructure
 from models.parameter import Parameter
-from models.coupling_state import CouplingState, StateOnDest
-from models.coupling_list import Coupling
 from models.function_body import Body
 from models.function_interface import FunctionInterface
 import pycparser_fake_libc
-
 
 class VariableAssignmentVisitor(c_ast.NodeVisitor):
     def __init__(self, func_name):

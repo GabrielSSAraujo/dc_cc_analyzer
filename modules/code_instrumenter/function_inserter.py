@@ -1,7 +1,6 @@
 from pycparser import c_ast
 from .ast_node_structure import ASTNodeStructure
 
-
 class FunctionCallInserter(c_ast.NodeVisitor):
     def __init__(self, main_func):
         self.main_func = main_func
