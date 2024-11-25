@@ -144,14 +144,3 @@ class TestTestDriverGenerator(unittest.TestCase):
         self.compile_and_run("./testdriver_suti")
         self.verify_csv_files(self.result_file_path_sut)
         self.verify_csv_files(self.result_file_path_suti)
-
-
-# def suite():
-#     suite = unittest.TestSuite()
-#     suite.addTest(TestTestDriverGenerator("test_driver_suite"))
-#     return suite
-
-
-# if __name__ == "__main__":
-#     runner = unittest.TextTestRunner()
-#     runner.run(suite())

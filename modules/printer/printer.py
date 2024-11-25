@@ -32,7 +32,7 @@ class Printer:
                 if col == "Time":
                     generated[i] = []
                     continue
-                generated[i].append(str(col) + "=" + str(round(self.outputs_df.iloc[i][col], 3)))
+                generated[i].append(str(col) + "=" + str(round(self.results_df.iloc[i][col], 3)))
         
         return generated
     

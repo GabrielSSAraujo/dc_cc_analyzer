@@ -319,6 +319,3 @@ class TestPrinter(unittest.TestCase):
             i += 1
 
         pdf.file.close()
-
-# if __name__ == "__main__":
-#     unittest.main(verbosity=2)

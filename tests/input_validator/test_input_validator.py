@@ -95,7 +95,3 @@ class TestInputValidator(unittest.TestCase):
         self.assertFalse(iv.validate_test_vectors_format())
         self.assertEqual(mock_stdout.getvalue(), "[ERROR] Bad Test Vector format\n")
         del iv
-
-
-# if __name__ == "__main__":
-#     unittest.main(verbosity=2)
