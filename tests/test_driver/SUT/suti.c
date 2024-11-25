@@ -1,4 +1,4 @@
-#include "C:\Users\ALINE\Documents\TCC PES\dc_cc_analyzer-2\modules\coupling_recorder\coupling_recorder.h"
+#include "../../../modules/coupling_recorder/coupling_recorder.h"
 #include "sut.h"
 void compA(int SUTI1, int SUTI2, float SUTI3, int *SUTO2, float *SUTO1)
 

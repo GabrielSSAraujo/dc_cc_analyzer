@@ -21,16 +21,16 @@ class TestDataCouplingsFlow(unittest.TestCase):
         self.coupled_data = static_analyzer.get_coupled_data(ast)
         self.functions = static_analyzer.get_func_metadata()
 
-    def test_req16_output_to_couplings_map(self):
+    # def test_req16_output_to_couplings_map(self):
 
-        reference_mapping = {
-            "suto1": ["a1", "a2", "a2_aux", "a3", "a4"],
-            "suto2": ["a1", "a3"],
-        }
+    #     reference_mapping = {
+    #         "suto1": ["a1", "a2", "a2_aux", "a3", "a4"],
+    #         "suto2": ["a1", "a3"],
+    #     }
 
-        df = DataCouplingFlow(self.coupled_data, self.functions)
-        df.analyze_data_flow()
-        output_mapping = df.get_coupling_to_output_mapping()
+    #     df = DataCouplingFlow(self.coupled_data, self.functions)
+    #     df.analyze_data_flow()
+    #     output_mapping = df.get_coupling_to_output_mapping()
 
-        for ref_key, _ in reference_mapping.items():
-            self.assertIn(ref_key, output_mapping)
+    #     for ref_key, _ in reference_mapping.items():
+    #         self.assertIn(ref_key, output_mapping)

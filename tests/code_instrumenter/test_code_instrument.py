@@ -24,12 +24,12 @@ class TestCodeInstrumenter(unittest.TestCase):
         # generate ast
         ast = static_analyzer.get_ast(data_path + "/SUT/sut.c")
         # get coupled data
-        self.coupled_data = static_analyzer.get_coupled_data(ast)
+        self.function_interface_list = static_analyzer.get_coupled_data(ast)
         # get primitive types
         typedef_to_primitive_type = types.get_types_from_ast(ast)
         # instrument code
         preprocessed_code = code_instrumenter.instrument_code(
-            ast, self.coupled_data, "sut", typedef_to_primitive_type
+            ast, self.function_interface_list, "sut", typedef_to_primitive_type
         )
         # format code
         code_formatter = CodeFormatter(data_path + "/SUT/sut.c", static_analyzer)
@@ -38,22 +38,42 @@ class TestCodeInstrumenter(unittest.TestCase):
 
         self.code = include_abs_path_recorder + code
 
-    def test_req11_verify_suti_coupled_params(self):
+    def test_req8_verify_suti_coupled_params(self):
         # check whether all coupled parameters habe been inserted into the instrumented sut
         already_verified = []
-        for coupled in self.coupled_data:
-            for param in coupled.parameters:
+        for function_interface in self.function_interface_list:
+            for param in function_interface.input_parameters:
                 if param.name not in already_verified:
-                    pattern = rf'recorder_record\(".*?",\s*{re.escape(param.name)},\s*"{re.escape(param.type)}"\);'
-                    already_verified.append(param.name)
-                    self.assertTrue(re.search(pattern, self.code))
+                    pattern = rf'recorder_record\(".*?",\s*&?{re.escape(param.name)},\s*"{re.escape(param.type)}"\);'
+                    already_verified.append(param.current_name)
+                    self.assertTrue(
+                        re.search(pattern, self.code),
+                        f"[ERRO] Parameter: {param}, has not been inserted!",
+                    )
 
-    def test_req11_verify_code_compilation(self):
+    def test_req8_verify_code_compilation(self):
         # write code to file
-        with open(data_path + "/SUT/suti.c", "w+") as fp:
+        with open(data_path + "/SUT/suti/suti.c", "w+") as fp:
             fp.write(str(self.code))
         # check if the code has an error
+        main_path = data_path + "/SUT/suti/main.c"
+        sut_path = data_path + "/SUT/suti/suti.c"
+        recorder_path = project_root + "/modules/coupling_recorder/coupling_recorder.c"
+        list_path = project_root + "/modules/coupling_recorder/list.c"
+
         compilation = subprocess.run(
-            ["gcc", "suti.c", "-o", "suti"], capture_output=True, text=True
+            [
+                "gcc",
+                main_path,
+                sut_path,
+                recorder_path,
+                list_path,
+                "-o",
+                data_path + "/SUT/suti/suti",
+            ],
+            capture_output=True,
+            text=True,
         )
-        self.assertTrue(compilation.returncode)
+        self.assertEqual(
+            compilation.returncode, 0, f"Instrumented SUT compilation error"
+        )
