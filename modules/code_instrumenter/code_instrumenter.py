@@ -1,6 +1,8 @@
 from pycparser import c_generator
 from modules.code_instrumenter.function_inserter import FunctionCallInserter
 
+# REQ-8 A Ferramenta deve criar um SUT Instrumentado (suti.c) a partir do SUT original, adicionando nele 
+# chamadas de funções (probes) que registram os valores das entradas e saídas de cada função executada pelo SUT.
 class CodeInstrumenter:
     def __init__(self, main_func="sut"):
         self._ast = None

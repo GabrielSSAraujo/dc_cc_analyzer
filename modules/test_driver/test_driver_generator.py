@@ -1,5 +1,12 @@
 import shutil
 
+# REQ-9 A Ferramenta deve criar um Test Driver para o SUT (test_driver_sut.c), cuja função é executar o SUT 
+# com as entradas presentes nos Test Vectors e registrar as saídas produzidas para cada entrada em um arquivo
+# chamado "results_sut.csv".
+
+# REQ-10 A Ferramenta deve criar um Test Driver para o SUT Instrumentado (test_driver_suti.c), cuja função é 
+# executar o SUT Instrumentado com as entradas presentes nos Test Vectors e registrar as saídas produzidas para
+# cada entrada em um arquivo chamado "results_suti.csv" 
 class TestDriver:
 
     def create_variables(self, CType_parameters):

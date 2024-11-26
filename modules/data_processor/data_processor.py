@@ -95,6 +95,8 @@ class DataProcessor:
         self.pass_rate = round((passed_tests / total_tests) * 100, 2)
         return self.pass_rate, self.results_data["pass_fail"]
 
+    # REQ-12 A Ferramenta deve adotar o critério de cobertura DC/CC dado por: "As entradas das funções 
+    # são exercitadas com valores distintos e tais valores afetam individualmente as saídas das respectivas funções".
     def analyze(self, function_interface_list):
         tolerance = 0.00001
 

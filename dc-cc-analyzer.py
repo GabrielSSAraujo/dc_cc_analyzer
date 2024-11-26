@@ -15,7 +15,6 @@ import platform
 if __name__ == "__main__":
     # Validate inputs
     print(">> Validating inputs...")
-
     input_validator = InputValidator(sys.argv)
     if not input_validator.validate():
         exit(1)
@@ -44,7 +43,7 @@ if __name__ == "__main__":
         ast, function_interface_list, "sut", typedef_to_primitive_type
     )  # gera SUTI.c
 
-    # Format Instrumented SUT (suti.c)
+    # Format Instrumented SUT (suti.c) - REQ-8
     code_formatter = CodeFormatter(path_sut, static_analyzer)
     code = code_formatter.format_code(preprocessed_code)
     include_abs_path_recorder = f'#include "{os.path.join(os.getcwd(), "modules", "coupling_recorder", "coupling_recorder.h")}"\n'
@@ -71,7 +70,7 @@ if __name__ == "__main__":
     data_extractor = DataExtractor(path_testvector)
     input_path = data_extractor.extract_data(main_funtion.parameters)
 
-    # Test driver generator sut]
+    # Test driver for SUT (REQ-9)
     print(">> Generating test drivers...")
     td_generator = TestDriver()
     td_generator.test_driver_generator(
@@ -82,7 +81,8 @@ if __name__ == "__main__":
         CType_parameters_sut,
         formatter_spec_sut,
     )
-    # Setup Test Driver
+
+    # Test driver for SUTI (REQ-10)
     td_generator.test_driver_generator(
         input_path,
         dir_name + "/sut.h",
@@ -93,6 +93,7 @@ if __name__ == "__main__":
     )
 
     # REQ-1: A Ferramenta deve executar em sistemas operacionais Windows e distribuições Linux.
+    # REQ-11 A Ferramenta deve compilar o Test Driver do SUT e do SUT Instrumentado.
     # Compile Test Driver with Instrumented SUT and Original SUT
     print(">> Compiling codes...")
     if platform.system() == "Windows":
