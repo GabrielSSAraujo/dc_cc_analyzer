@@ -1,8 +1,8 @@
 from pycparser import c_generator
-from models.coupling_list import Coupling
 from modules.code_instrumenter.function_inserter import FunctionCallInserter
 
-
+# REQ-8 A Ferramenta deve criar um SUT Instrumentado (suti.c) a partir do SUT original, adicionando nele 
+# chamadas de funções (probes) que registram os valores das entradas e saídas de cada função executada pelo SUT.
 class CodeInstrumenter:
     def __init__(self, main_func="sut"):
         self._ast = None
@@ -17,8 +17,6 @@ class CodeInstrumenter:
     def insert_probes(self, parameters, func_name, insert_after=False):
         recorded_params = []
         for parameter in parameters:
-            # if parameter.name in inserted_params:
-            #     continue
             # fill parameters list
             recorded_params.append(parameter.current_name)
 
@@ -46,10 +44,6 @@ class CodeInstrumenter:
 
         # stores the parameters name
         recorder_param = []
-
-        # inserted_params = []
-
-        # for each coupled function get which parameter is coupled and instrument the funtion
         for function_interface in self._function_interface_list:
 
             func_name = function_interface.function_name
@@ -67,11 +61,10 @@ class CodeInstrumenter:
                     True,
                 )
             )
-            # inserted_params.append(parameter.name)
 
         recorder_param = list(set(recorder_param))
+        
         # initializing coupling list in recorder
-
         self.inserter.set_data_to_insert(
             main_func,
             "recorder_setCouplings",
@@ -80,6 +73,6 @@ class CodeInstrumenter:
         )
         self.inserter.visit(self._ast)
 
-        # compara codigo c com os includes pre-processados e retorna diferença
+        # compares C code with preprocessed includes and returns difference
         code = self._generate_c_code(self._ast)
         return code

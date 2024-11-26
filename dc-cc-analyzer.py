@@ -7,18 +7,14 @@ from modules.input_validator.input_validator import InputValidator
 from modules.test_driver.data_extractor import DataExtractor
 from modules.printer.printer import Printer
 from modules.test_driver.test_driver_generator import TestDriver
-from modules.data_couplings_flow.data_couplings_flow import DataCouplingFlow
 import sys
 import os
 import subprocess
 import platform
-import json
 
 if __name__ == "__main__":
-
     # Validate inputs
     print(">> Validating inputs...")
-
     input_validator = InputValidator(sys.argv)
     if not input_validator.validate():
         exit(1)
@@ -36,39 +32,30 @@ if __name__ == "__main__":
     ast = static_analyzer.get_ast(path_sut)
     function_interface_list = static_analyzer.get_coupled_data(ast)
 
-    # # Get SUT's typedefs primitive types
+    # Get SUT's typedefs primitive types
     types = TypeExtractor()
     typedef_to_primitive_type = types.get_types_from_ast(ast)
 
-    # # Generate preprocessed Instrumented SUT from AST
+    # Generate preprocessed Instrumented SUT from AST
     print(">> Generating instrumented code...")
     code_instrumenter = CodeInstrumenter()
     preprocessed_code = code_instrumenter.instrument_code(
         ast, function_interface_list, "sut", typedef_to_primitive_type
     )  # gera SUTI.c
 
-    # # Format Instrumented SUT (suti.c)
+    # Format Instrumented SUT (suti.c) - REQ-8
     code_formatter = CodeFormatter(path_sut, static_analyzer)
     code = code_formatter.format_code(preprocessed_code)
     include_abs_path_recorder = f'#include "{os.path.join(os.getcwd(), "modules", "coupling_recorder", "coupling_recorder.h")}"\n'
 
     code = include_abs_path_recorder + code
 
-    # # # Create sut_inst.c file
+    # Create sut_inst.c file
     with open(dir_name + "/suti.c", "w+") as out_file:
         out_file.write(code)
     out_file.close()
 
-    # # generate coupling_data.json with data coupling flow
-    # dcf = DataCouplingFlow(coupled_data, static_analyzer.get_func_metadata())
-    # dcf.analyze_data_flow()
-    # dcf.save_graph("./data/data_couplings_flow/")
-    # cd_json = json.dumps(dcf.get_coupling_to_output_mapping(), indent=4)
-    # with open("./data/data_couplings_flow/couplings_data.json", "w+") as fp:
-    #     fp.write(str(cd_json))
-    # fp.close()
-
-    # #Execute Test Driver with Original SUT
+    # Execute Test Driver with Original SUT
     main_funtion = static_analyzer.get_func_metadata("sut")
 
     CType_parameters_sut = []
@@ -83,7 +70,7 @@ if __name__ == "__main__":
     data_extractor = DataExtractor(path_testvector)
     input_path = data_extractor.extract_data(main_funtion.parameters)
 
-    # Test driver generator sut]
+    # Test driver for SUT (REQ-9)
     print(">> Generating test drivers...")
     td_generator = TestDriver()
     td_generator.test_driver_generator(
@@ -94,7 +81,8 @@ if __name__ == "__main__":
         CType_parameters_sut,
         formatter_spec_sut,
     )
-    # Setup Test Driver
+
+    # Test driver for SUTI (REQ-10)
     td_generator.test_driver_generator(
         input_path,
         dir_name + "/sut.h",
@@ -105,6 +93,7 @@ if __name__ == "__main__":
     )
 
     # REQ-1: A Ferramenta deve executar em sistemas operacionais Windows e distribuições Linux.
+    # REQ-11 A Ferramenta deve compilar o Test Driver do SUT e do SUT Instrumentado.
     # Compile Test Driver with Instrumented SUT and Original SUT
     print(">> Compiling codes...")
     if platform.system() == "Windows":

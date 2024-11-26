@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 from .parameter import Parameter
 
-
 @dataclass
 class Body:
     definitions: List[Parameter] = field(default_factory=list)

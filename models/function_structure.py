@@ -3,7 +3,6 @@ from typing import List, Optional
 from .parameter import Parameter
 from .function_body import Body
 
-
 @dataclass
 class FuncStructure:
     type: str

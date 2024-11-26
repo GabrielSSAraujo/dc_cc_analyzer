@@ -1,12 +1,5 @@
-"""
- @file: data_extractor.py
- @brief [Descrição breve do arquivo]
-
-"""
 import pandas as pd
 import os
-from models.parameter import Parameter
-    
     
 class DataExtractor:
     def __init__(self, file_path):

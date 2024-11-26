@@ -1,3 +1,5 @@
+# REQ-11 A Ferramenta deve compilar o Test Driver do SUT e do SUT Instrumentado.
+
 # Pass SRC_DIR as a command line parameter to this makefile
 # Example (Windows): mingw32-make all SRC_DIR=project
 # Example (Linux): make all SRC_DIR=project

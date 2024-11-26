@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from typing import Optional, List
 from .parameter import Parameter
 
-
 @dataclass
 class FunctionInterface:
     function_name: Optional[str] = None
