@@ -15,8 +15,6 @@ class CodeInstrumenter:
     def insert_probes(self, parameters, func_name, insert_after=False):
         recorded_params = []
         for parameter in parameters:
-            # if parameter.name in inserted_params:
-            #     continue
             # fill parameters list
             recorded_params.append(parameter.current_name)
 
@@ -44,10 +42,6 @@ class CodeInstrumenter:
 
         # stores the parameters name
         recorder_param = []
-
-        # inserted_params = []
-
-        # for each coupled function get which parameter is coupled and instrument the funtion
         for function_interface in self._function_interface_list:
 
             func_name = function_interface.function_name
@@ -65,11 +59,10 @@ class CodeInstrumenter:
                     True,
                 )
             )
-            # inserted_params.append(parameter.name)
 
         recorder_param = list(set(recorder_param))
+        
         # initializing coupling list in recorder
-
         self.inserter.set_data_to_insert(
             main_func,
             "recorder_setCouplings",
@@ -78,6 +71,6 @@ class CodeInstrumenter:
         )
         self.inserter.visit(self._ast)
 
-        # compara codigo c com os includes pre-processados e retorna diferença
+        # compares C code with preprocessed includes and returns difference
         code = self._generate_c_code(self._ast)
         return code

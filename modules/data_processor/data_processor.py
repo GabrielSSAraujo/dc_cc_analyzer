@@ -18,15 +18,11 @@ class DataProcessor:
         self.pass_rate = 0.0
         self.exercised_percentage = 0.0
         self.compromised_suti = False
-        self.results_data = {"global": {}, "couplings": {}, "pass_fail": {}}
+        self.results_data = {"pass_fail": {}}
 
         # Load tolerances as a dictionary
-        tolerances_df = pd.read_csv(
-            files_dir + "tolerances.csv", index_col=0, header=None
-        )
-        self.tolerances = tolerances_df[
-            1
-        ].to_dict()  # Column 1 contains tolerance values
+        tolerances_df = pd.read_csv(files_dir + "tolerances.csv", index_col=0, header=None)
+        self.tolerances = tolerances_df[1].to_dict()  # Column 1 contains tolerance values
 
     def check_variation(self, row_index, column, dataframe, tolerance):
         """
@@ -35,9 +31,7 @@ class DataProcessor:
         """
         # Ensure the row_index is valid and has a predecessor
         if row_index <= 0 or row_index >= len(dataframe):
-            logging.warning(
-                f"Row index {row_index} is out of bounds or has no predecessor."
-            )
+            logging.warning(f"Row index {row_index} is out of bounds or has no predecessor.")
             return False
 
         # Retrieve the current and previous values
@@ -45,10 +39,7 @@ class DataProcessor:
         previous_value = dataframe.at[row_index - 1, column]
 
         # Calculate the absolute difference and check if it exceeds the tolerance
-        return (
-            round_to_match_decimals(abs(current_value - previous_value), tolerance)
-            > tolerance
-        )
+        return (round_to_match_decimals(abs(current_value - previous_value), tolerance) > tolerance)
 
     def get_coverage(self, func_coverage_list):
         total_coverage = 0
@@ -101,17 +92,13 @@ class DataProcessor:
             if pass_case:
                 passed_tests += 1
 
-        # Calculate and log pass rate
         self.pass_rate = round((passed_tests / total_tests) * 100, 2)
-        # print(f"Percentage of passed test cases: {self.pass_rate:.2f}%")
-        self.results_data["global"]["pass_fail"] = self.pass_rate
-
         return self.pass_rate, self.results_data["pass_fail"]
 
     def analyze(self, function_interface_list):
         tolerance = 0.00001
-        # self.probes
-        # se entradas variaram de forma independente
+
+        # checks whether inputs varied independently
         func_coverage_list = []
         for function_interface in function_interface_list:
             inputs = [item.current_name for item in function_interface.input_parameters]
@@ -148,31 +135,6 @@ class DataProcessor:
             func_coverage_list.append(new_df)
 
         return func_coverage_list
-
-    def get_total_couplings(self):
-        size = 0
-        for coupling in self.couplings_outputs.values():
-            size += len(coupling)
-        return size
-
-    def init_couplings_fields_in_results_data(self):
-        couplings = self.probes.columns[1:]
-        for coupling in couplings:
-            self.results_data["couplings"][coupling] = {}
-            self.results_data["couplings"][coupling]["related_outputs"] = {}
-            for output in self.couplings_outputs:
-                couplings_related_to_output = self.couplings_outputs[output]
-                if coupling in couplings_related_to_output:
-                    self.results_data["couplings"][coupling]["related_outputs"][
-                        output
-                    ] = {}
-                    self.results_data["couplings"][coupling]["related_outputs"][output][
-                        "covered"
-                    ] = False
-                    self.results_data["couplings"][coupling]["related_outputs"][output][
-                        "time_of_coverage"
-                    ] = []
-
 
 def round_to_match_decimals(number, reference):
     # Determine the number of decimal places in the reference number

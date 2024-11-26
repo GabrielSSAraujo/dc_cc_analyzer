@@ -37,7 +37,6 @@ class FunctionCallInserter(c_ast.NodeVisitor):
     def visit_FuncDef(self, node):
         # if the first time, add includes
         if node.decl.name == self.main_func:
-            # print(node)
             self.visit(node.body)
 
     def visit_Compound(self, node):

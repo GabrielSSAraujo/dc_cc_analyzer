@@ -71,7 +71,6 @@ class FuncDeclVisitor(c_ast.NodeVisitor):
                     temp_parameter.type = " ".join(params_type.names)
                     temp_parameter.pointer_depth = ""
                 elif isinstance(params_type, c_ast.PtrDecl):
-                    # output - tratar esse caso quando acoplado
                     temp_parameter.type = " ".join(params_type.type.type.names)
                     temp_parameter.pointer_depth = "**"
                 elif isinstance(params_type, c_ast.TypeDecl):
@@ -177,12 +176,6 @@ class FunctionAnalyzer:
         self.record_name = {}
         self.initialized_param_list = initialized_param_list
 
-    def remove_aux_suffix(self, value):
-        # Check if string ends with 'aux' and remove
-        while value.endswith("_aux"):
-            value = value[:-4] if value.endswith("_aux") else value
-        return value
-
     def get_function_outputs(self, function_metadata):
         function_parameters = function_metadata.parameters
         function_return = function_metadata.body.assigned_to
@@ -193,7 +186,7 @@ class FunctionAnalyzer:
         return output
 
     def _analyze_parameter_coupling(self, main_function):
-        # se o parametro nao estiver na lista ela é so saida
+        # if the parameter is not in the list it is as output
         function_interface_list = []
         call_list = self.functions[main_function].body.calls
 
@@ -254,7 +247,7 @@ class FunctionAnalyzer:
         print("implement")
 
 
-# interface de chamadas de funções para analise
+# function call interface for analysis
 class StaticAnalyzer:
     def __init__(self):
         self.functions_metadata = None
@@ -294,10 +287,9 @@ class StaticAnalyzer:
         aux_def = FuncDefVisitor(definitions.functions_list)
         aux_def.visit(ast)
 
-        # print(definitions.functions_list)
         self.functions_metadata = (
             definitions.functions_list
-        )  # remover o retorno e usar o metadata global
+        )
 
     def generate_c_code_from_ast(self, ast):
         generator = c_generator.CGenerator()

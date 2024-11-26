@@ -21,7 +21,6 @@ class TypeExtractor:
         types = TypeDefVisitor()
         types.visit(ast)
 
-        #adicionar se não existir os tipos aceitos aqui:
         type_list = [
             "int",
             "char",
@@ -35,7 +34,7 @@ class TypeExtractor:
             "unsigned short",
             "long long",
             "long double",
-            "size_t",  # print as unsigned decimal
+            "size_t",
             "int8_t",
             "int16_t",
             "int32_t",
@@ -65,7 +64,7 @@ class TypeExtractor:
             "unsigned short": "%hu",
             "long long": "%lld",
             "long double": "%Lf",
-            "size_t": "%zu",  # print as unsigned decimal
+            "size_t": "%zu",
             "int8_t": "%d",
             "int16_t": "%d",
             "int32_t": "%d",

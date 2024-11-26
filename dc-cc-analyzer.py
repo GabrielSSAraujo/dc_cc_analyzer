@@ -37,14 +37,14 @@ if __name__ == "__main__":
     types = TypeExtractor()
     typedef_to_primitive_type = types.get_types_from_ast(ast)
 
-    # # Generate preprocessed Instrumented SUT from AST
+    # Generate preprocessed Instrumented SUT from AST
     print(">> Generating instrumented code...")
     code_instrumenter = CodeInstrumenter()
     preprocessed_code = code_instrumenter.instrument_code(
         ast, function_interface_list, "sut", typedef_to_primitive_type
     )  # gera SUTI.c
 
-    # # Format Instrumented SUT (suti.c)
+    # Format Instrumented SUT (suti.c)
     code_formatter = CodeFormatter(path_sut, static_analyzer)
     code = code_formatter.format_code(preprocessed_code)
     include_abs_path_recorder = f'#include "{os.path.join(os.getcwd(), "modules", "coupling_recorder", "coupling_recorder.h")}"\n'
