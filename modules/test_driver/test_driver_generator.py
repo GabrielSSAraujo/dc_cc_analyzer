@@ -123,7 +123,7 @@ class TestDriver:
 
         # Replace specific values in the content
         conteudo = conteudo.replace(
-            "// include SutFileName.h", f'#include "../../../{path_sut}"'
+            "// include SutFileName.h", f'#include "{path_sut}"'
         )
 
         input_filename = "input_file"

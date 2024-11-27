@@ -75,7 +75,7 @@ if __name__ == "__main__":
     td_generator = TestDriver()
     td_generator.test_driver_generator(
         input_path,
-        dir_name + "/sut.h",
+        "../../../" +  dir_name + "/sut.h",
         "./data/results_sut.csv",
         "./modules/test_driver/c_files/test_driver_sut.c",
         CType_parameters_sut,
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     # Test driver for SUTI (REQ-10)
     td_generator.test_driver_generator(
         input_path,
-        dir_name + "/sut.h",
+        "../../../" +  dir_name + "/sut.h",
         "./data/results_suti.csv",
         "./modules/test_driver/c_files/test_driver_suti.c",
         CType_parameters_sut,
