@@ -26,6 +26,8 @@ Where \<path-to-sut> is the path in your machine to the sut.c file you want to t
 
 ## Documentation
 
+The requirements related to the development of the tool can be found on the following wiki page: [requirements](https://github.com/GabrielSSAraujo/dc_cc_analyzer/wiki/Requisitos)
+
 Check the [wiki](https://github.com/GabrielSSAraujo/dc_cc_analyzer/wiki) for more informations.
 
 ## Authors
